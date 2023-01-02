@@ -69,7 +69,7 @@ main (int   argc,
   /* Set up the pipeline */
 
   /* we set the input filename to the source element */
-  g_object_set (G_OBJECT (source), "device-index", 0, NULL);
+  g_object_set (G_OBJECT (source), "device-index", 1, NULL);
 
   /* we add a message handler */
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -84,17 +84,33 @@ main (int   argc,
 
   /* we link the elements together */
   /* video-src -> WAV-demux -> converter -> auto-output */
-  gst_element_link_many (source, conv, sink, NULL);
+  // gst_element_link_many (source, conv, sink, NULL);
+  gboolean link_ok;
 
+  link_ok = gst_element_link (source, conv);
+  if (!link_ok) {
+    g_warning ("Failed to link source and conv!");
+  }
+
+  GstCaps *caps_conv;
+  caps_conv = gst_caps_new_simple ("video/x-raw",
+          "width", G_TYPE_INT, 1280,
+          "height", G_TYPE_INT, 720,
+          NULL);
+
+  link_ok = gst_element_link_filtered (conv, sink, caps_conv);
+  gst_caps_unref (caps_conv);
+
+  if (!link_ok) {
+    g_warning ("Failed to link conv and sink!");
+  }
 
   /* Set the pipeline to "playing" state*/
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
-
   /* Iterate */
   g_print ("Running...\n");
   g_main_loop_run (loop);
-
 
   /* Out of the main loop, clean up nicely */
   g_print ("Returned, stopping playback\n");
