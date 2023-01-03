@@ -71,8 +71,8 @@ main (int   argc,
   /* Set up the pipeline */
 
   /* we set the input filename to the source element */
-  g_object_set (G_OBJECT (source), "device-index", 0, NULL);
-  g_object_set (G_OBJECT (sink), "host", "127.0.0.1", NULL);
+  g_object_set (G_OBJECT (source), "device-index", 1, NULL);
+  g_object_set (G_OBJECT (sink), "host", "192.168.2.2", NULL);
   g_object_set (G_OBJECT (sink), "port", 5000, NULL);
   // g_object_set (G_OBJECT (sink), "async", 0, NULL);
   g_object_set (G_OBJECT (h264enc), "bitrate", 500, NULL);
@@ -112,23 +112,24 @@ main (int   argc,
   //   g_warning ("Failed to link rtpenc and sink!");
   // }
 
-  // GstCaps *caps_scale;
+  GstCaps *caps_scale;
 
-  // caps_scale = gst_caps_new_simple ("video/x-raw",
-  //         "framerate", GST_TYPE_FRACTION, 20, 1,
-  //         NULL);
+  caps_scale = gst_caps_new_simple ("video/x-raw",
+          "width", G_TYPE_INT, 640,
+          "height", G_TYPE_INT, 480,
+          NULL);
 
-  // link_ok = gst_element_link_filtered (source, scale, caps_scale);
-  // gst_caps_unref (caps_scale);
+  link_ok = gst_element_link_filtered (source, scale, caps_scale);
+  gst_caps_unref (caps_scale);
 
-  // if (!link_ok) {
-  //   g_warning ("Failed to link source and scale!");
-  // }
+  if (!link_ok) {
+    g_warning ("Failed to link source and scale!");
+  }
 
   gboolean link_many_ok;
   /* we link the elements together */
   /* video-src -> WAV-demux -> converter -> auto-output */
-  link_many_ok = gst_element_link_many (source, scale, conv, h264enc, rtpenc, sink, NULL);
+  link_many_ok = gst_element_link_many (scale, conv, h264enc, rtpenc, sink, NULL);
   if (!link_many_ok) {
     g_warning ("Failed to link remaining elements!");
   }
