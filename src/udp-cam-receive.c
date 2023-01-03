@@ -43,7 +43,7 @@ main (int   argc,
 {
   GMainLoop *loop;
 
-  GstElement *pipeline, *source, *demux, *conv, *sink, *rtpdec, *h264dec;
+  GstElement *pipeline, *source, *demux, *conv, *sink, *rtpdec, *h264dec, *h264parse;
   GstBus *bus;
   guint bus_watch_id;
 
@@ -58,11 +58,14 @@ main (int   argc,
   source   = gst_element_factory_make ("udpsrc", "udp-input");
   conv     = gst_element_factory_make ("videoconvert",  "converter");
   rtpdec   = gst_element_factory_make ("rtph264depay",  "rtp-decode");
+//   h264dec   = gst_element_factory_make ("vtdec_hw",  "h264-decode");
   h264dec   = gst_element_factory_make ("avdec_h264",  "h264-decode");
+  h264parse   = gst_element_factory_make ("h264parse",  "h264-parse");
 //   h264dec   = gst_element_factory_make ("decodebin",  "h264-decode");
   sink     = gst_element_factory_make ("autovideosink", "video-output");
+//   sink     = gst_element_factory_make ("fakesink", "video-output");
 
-  if (!pipeline || !source || !conv || !sink || !rtpdec || !h264dec) {
+  if (!pipeline || !source || !conv || !sink || !rtpdec || !h264dec || !h264parse) {
     g_printerr ("One element could not be created. Exiting.\n");
     return -1;
   }
@@ -70,7 +73,7 @@ main (int   argc,
   /* Set up the pipeline */
 
   /* we set the input filename to the source element */
-  g_object_set (G_OBJECT (source), "port", 5004, NULL);
+  g_object_set (G_OBJECT (source), "port", 5000, NULL);
 
   /* we add a message handler */
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -80,32 +83,30 @@ main (int   argc,
   /* we add all elements into the pipeline */
   /* video-src | WAV-demux | converter | alsa-output */
   gst_bin_add_many (GST_BIN (pipeline),
-                    source, rtpdec, h264dec, conv, sink, NULL);
+                    source, rtpdec, h264dec, conv, sink, h264parse, NULL);
 
-  /* 
-  appears may need to add caps for udpsrc 
-  ‘application/x-rtp, encoding-name=H264, payload=96’
-  https://gstreamer.freedesktop.org/documentation/application-development/basics/pads.html?gi-language=c
-  */
   gboolean link_ok;
   GstCaps *caps;
 
   caps = gst_caps_new_simple ("application/x-rtp",
           "encoding-name", G_TYPE_STRING, "H264",
           "payload", G_TYPE_INT, 96,
+          "clock-rate", G_TYPE_INT, 90000,
+          "media", G_TYPE_STRING, "video",
           NULL);
 
   link_ok = gst_element_link_filtered (source, rtpdec, caps);
   gst_caps_unref (caps);
 
   if (!link_ok) {
-    g_warning ("Failed to link source and rtpdec!");
+    g_warning ("Failed to link rtpenc and sink!");
   }
   
   gboolean link_many_ok;
   /* we link the elements together */
   /* video-src -> WAV-demux -> converter -> auto-output */
-  link_many_ok = gst_element_link_many (rtpdec, h264dec, conv, sink, NULL);
+  link_many_ok = gst_element_link_many (rtpdec, h264parse, h264dec, conv, sink, NULL);
+//   link_many_ok = gst_element_link_many(rtpdec, sink, NULL);
 
   if (!link_many_ok) {
     g_warning ("Failed to link remaining elements!");
