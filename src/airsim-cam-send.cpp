@@ -64,13 +64,12 @@ typedef struct _PipelineData {
 } PipelineData;
 
 
-static int runGstreamer(PipelineData data) {
+static int runGstreamer(int *argc, char **argv[], PipelineData data) {
     GstBus *bus;
     guint bus_watch_id;
 
     // initialize gstreamer
-    gst_init();
-    
+    gst_init(argc, argv);
 
     // Create the elements
     data.app_source = gst_element_factory_make ("appsrc", "video_source");
@@ -87,7 +86,7 @@ static int runGstreamer(PipelineData data) {
     // element configuration goes here
 
     // link elements
-    gst_bin_add_many(GST_BIN (data.pipeline), data.app_source, data.app_sink);
+    gst_bin_add_many(GST_BIN (data.pipeline), data.app_source, data.app_sink, NULL);
     if (gst_element_link_many (data.app_source, data.app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
         gst_object_unref (data.pipeline);
@@ -129,13 +128,13 @@ static void sendImageStream(int fps) {
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
     PipelineData data = {};
     // will need to check that data.app_source isn't initialized to 0 in thread below - wait for it
     // to become an element
     std::thread feedAppSrc (sendImageStream, 30);
 
-    int pipelineStatus = runGstreamer(data);
+    int pipelineStatus = runGstreamer(&argc, &argv, data);
 
     feedAppSrc.join();
 
