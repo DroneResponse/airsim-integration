@@ -80,6 +80,13 @@ static int runGstreamer(int *argc, char **argv[], PipelineData data) {
 
     if (!data.pipeline || !data.app_source || !data.app_sink) {
         g_printerr("Not all elements could be created\n");
+        g_print("\npipeline: ");
+        std::cout << data.pipeline;
+        g_print("\napp_source: ");
+        std::cout << data.app_source;
+        g_print("\napp_sink: ");
+        std::cout << data.app_sink;
+
         return -1;
     }
 
