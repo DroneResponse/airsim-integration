@@ -31,6 +31,8 @@ static void sendImageStream(int fps) {
 }
 
 int main() {
-    sendImageStream(30);
+    std::thread feedAppSrc (sendImageStream, 30);
+
+    feedAppSrc.join();
 }
 
