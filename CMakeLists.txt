@@ -1,3 +1,5 @@
+# gstreamer pkg-config setup instructions: https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig
+# need to set PKG_CONFIG_PATH and prepend gstreamer specific pkg-config to PATH
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(AirSimCamSend)
@@ -13,8 +15,10 @@ endif()
 find_package(PkgConfig REQUIRED)
 
 # list pkg config libraries with 'pkg-config --list-all'
-pkg_check_modules(GST REQUIRED gstreamer-base-1.0
-                                gstreamer-plugins-base-1.0)
+pkg_check_modules(GST REQUIRED gstreamer-1.0
+                    gstreamer-plugins-base-1.0
+                    gstreamer-base-1.0
+                    gstreamer-app-1.0)
 
 include_directories(
     # ${GAZEBO_INCLUDE_DIRS}
