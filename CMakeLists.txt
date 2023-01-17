@@ -21,13 +21,13 @@ include_directories(
     ${AIRSIM_ROOT}/AirLib/deps/eigen3
     ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
     ${AIRSIM_ROOT}/AirLib/include
-    ${GSTREAMER_ROOT}/Headers
+    ${GST_INCLUDE_DIRS}
 )
 
 link_directories(
     # ${GAZEBO_LIBRARY_DIRS}
     ${AIRSIM_ROOT}/build_release/output/lib
-    ${GSTREAMER_ROOT}/Libraries
+    ${GST_LIBRARY_DIRS}
 )
 
 # list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
