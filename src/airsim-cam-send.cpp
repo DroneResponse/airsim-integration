@@ -136,7 +136,13 @@ int main(int argc, char *argv[]) {
 
     int pipelineStatus = runGstreamer(&argc, &argv, data);
 
-    feedAppSrc.join();
+    if (!pipelineStatus) {
+        feedAppSrc.join();
+    }
+
+    if (pipelineStatus) {
+        std::cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << std::endl;
+    }
 
     return pipelineStatus;
 }
