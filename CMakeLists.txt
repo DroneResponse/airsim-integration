@@ -20,18 +20,21 @@ pkg_check_modules(GST REQUIRED gstreamer-1.0
                     gstreamer-base-1.0
                     gstreamer-app-1.0)
 
+# ideally use ${GST_INCLUDE_DIRS}, but not successfully finding /Headers
 include_directories(
     # ${GAZEBO_INCLUDE_DIRS}
     ${AIRSIM_ROOT}/AirLib/deps/eigen3
     ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
     ${AIRSIM_ROOT}/AirLib/include
-    ${GST_INCLUDE_DIRS}
+    # ${GST_INCLUDE_DIRS}
+    ${GSTREAMER_ROOT}/Headers
 )
 
 link_directories(
     # ${GAZEBO_LIBRARY_DIRS}
     ${AIRSIM_ROOT}/build_release/output/lib
-    ${GST_LIBRARY_DIRS}
+    # ${GST_LIBRARY_DIRS}
+    ${GSTREAMER_ROOT}/Libraries
 )
 
 # list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
