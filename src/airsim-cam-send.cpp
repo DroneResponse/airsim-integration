@@ -14,6 +14,7 @@ STRICT_MODE_ON
 #include <chrono>
 #include <thread>
 #include <gst/gst.h>
+#include <gst/app/app.h>
 #include <glib.h>
 
 using namespace msr::airlib;
@@ -64,7 +65,7 @@ typedef struct _PipelineData {
 } PipelineData;
 
 
-static int runGstreamer(int *argc, char **argv[], PipelineData data) {
+static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     GstBus *bus;
     guint bus_watch_id;
 
@@ -72,50 +73,51 @@ static int runGstreamer(int *argc, char **argv[], PipelineData data) {
     gst_init(argc, argv);
 
     // Create the elements
-    data.app_source = gst_element_factory_make ("appsrc", "video_source");
-    data.app_sink = gst_element_factory_make ("appsink", "video_sink");
+    data->app_source = gst_element_factory_make ("appsrc", "video_source");
+    data->app_sink = gst_element_factory_make ("fakesink", "video_sink");
 
     // create empty pipeline
-    data.pipeline = gst_pipeline_new ("video-pipeline");
+    data->pipeline = gst_pipeline_new ("video-pipeline");
 
-    if (!data.pipeline || !data.app_source || !data.app_sink) {
+    if (!data->pipeline || !data->app_source || !data->app_sink) {
         g_printerr("Not all elements could be created\n");
         g_print("\npipeline: ");
-        std::cout << data.pipeline;
+        std::cout << data->pipeline;
         g_print("\napp_source: ");
-        std::cout << data.app_source;
+        std::cout << data->app_source;
         g_print("\napp_sink: ");
-        std::cout << data.app_sink;
+        std::cout << data->app_sink;
 
         return -1;
     }
 
     // element configuration goes here
+    g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
 
     // link elements
-    gst_bin_add_many(GST_BIN (data.pipeline), data.app_source, data.app_sink, NULL);
-    if (gst_element_link_many (data.app_source, data.app_sink, NULL) != TRUE) {
+    gst_bin_add_many(GST_BIN (data->pipeline), data->app_source, data->app_sink, NULL);
+    if (gst_element_link_many (data->app_source, data->app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
-        gst_object_unref (data.pipeline);
+        gst_object_unref (data->pipeline);
         return -1;
     }
 
     // start playing the pipeline
-    gst_element_set_state (data.pipeline, GST_STATE_PLAYING);
+    gst_element_set_state (data->pipeline, GST_STATE_PLAYING);
 
     // create and start main loop
     // add a message handler
-    data.main_loop = g_main_loop_new (NULL, FALSE);
+    data->main_loop = g_main_loop_new (NULL, FALSE);
 
-    bus = gst_pipeline_get_bus (GST_PIPELINE (data.pipeline));
-    bus_watch_id = gst_bus_add_watch (bus, bus_call, data.main_loop);
+    bus = gst_pipeline_get_bus (GST_PIPELINE (data->pipeline));
+    bus_watch_id = gst_bus_add_watch (bus, bus_call, data->main_loop);
     gst_object_unref (bus);
 
-    g_main_loop_run (data.main_loop);
+    g_main_loop_run (data->main_loop);
 
     // Free resources
-    gst_element_set_state (data.pipeline, GST_STATE_NULL);
-    gst_object_unref (data.pipeline);
+    gst_element_set_state (data->pipeline, GST_STATE_NULL);
+    gst_object_unref (data->pipeline);
     return 0;
 }
 
@@ -126,10 +128,31 @@ static vector<uint8_t> getOneImage() {
 }
 
 
-static void sendImageStream(int fps) {
+static void sendImageStream(PipelineData * pipelineData, int fps) {
     printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
+
     while(1) {
-        std::cout << "Image unit8 size: " << getOneImage().size() << std::endl;
+        vector<uint8_t> newImage = getOneImage();
+        // check that appsrc element is created in gstreamer thread before using
+        if (pipelineData->app_source) {
+            GstBuffer *buffer;
+            GstMapInfo map;
+            GstFlowReturn ret;
+            
+            // create buffer and allocate memory
+            buffer = gst_buffer_new_allocate(NULL, (gint)newImage.size(), NULL);
+            // fill writable map with (ideally writable) memory blocks in the buffer
+            gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+            map.data = newImage.data();
+            // release buffer memory that was associated with map
+            gst_buffer_unmap(buffer, &map);
+            ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
+            // TODO: utilize return to exit program on failure and indicate failure
+        }
+        else {
+            std::cout << "AppSrc element not yet created - image skipped" << std::endl;
+        }
+        std::cout << "Image unit8 size: " << newImage.size() << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
     }
 }
@@ -137,11 +160,10 @@ static void sendImageStream(int fps) {
 
 int main(int argc, char *argv[]) {
     PipelineData data = {};
-    // will need to check that data.app_source isn't initialized to 0 in thread below - wait for it
-    // to become an element
-    std::thread feedAppSrc (sendImageStream, 30);
+    
+    std::thread feedAppSrc(sendImageStream, &data, 30);
 
-    int pipelineStatus = runGstreamer(&argc, &argv, data);
+    int pipelineStatus = runGstreamer(&argc, &argv, &data);
 
     if (!pipelineStatus) {
         feedAppSrc.join();
