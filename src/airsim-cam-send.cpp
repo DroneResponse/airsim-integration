@@ -108,6 +108,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     
     GstCaps *caps_source;
     // TODO: set these caps dynamically based on what AirSim is returning in image response
+    // and the fps set in main
     caps_source = gst_caps_new_simple ("video/x-raw",
             "format", G_TYPE_STRING, "RGB",
             "framerate", GST_TYPE_FRACTION, 30, 1,
@@ -172,6 +173,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
     while(1) {
         vector<uint8_t> newImage = getOneImage();
+        
         // check that appsrc element is created in gstreamer thread before using
         if (pipelineData->app_source) {
             GstBuffer *buffer;
