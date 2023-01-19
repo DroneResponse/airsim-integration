@@ -57,7 +57,7 @@ bus_call (GstBus     *bus,
 
 
 typedef struct _PipelineData {
-  GstElement *pipeline, *app_source, *app_sink;
+  GstElement *pipeline, *app_source, *app_sink, *video_convert;
 
 //   guint64 num_samples;   /* Number of samples generated so far (for timestamp generation) */
 
@@ -74,7 +74,8 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 
     // Create the elements
     data->app_source = gst_element_factory_make ("appsrc", "video_source");
-    data->app_sink = gst_element_factory_make ("fakesink", "video_sink");
+    data->video_convert = gst_element_factory_make ("videoconvert", "video_convert");
+    data->app_sink = gst_element_factory_make ("autovideosink", "video_sink");
 
     // create empty pipeline
     data->pipeline = gst_pipeline_new ("video-pipeline");
@@ -87,16 +88,41 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
         std::cout << data->app_source;
         g_print("\napp_sink: ");
         std::cout << data->app_sink;
+        g_print("\nvideo_convert: ");
+        std::cout << data->video_convert;
 
         return -1;
     }
 
     // element configuration goes here
-    g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
+    // g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
+    // g_object_set(G_OBJECT(data->png_dec), "output-corrupt", TRUE, NULL);
 
     // link elements
-    gst_bin_add_many(GST_BIN (data->pipeline), data->app_source, data->app_sink, NULL);
-    if (gst_element_link_many (data->app_source, data->app_sink, NULL) != TRUE) {
+    gst_bin_add_many(
+        GST_BIN (data->pipeline),
+        data->app_source,
+        data->video_convert,
+        data->app_sink, 
+        NULL);
+    
+    GstCaps *caps_source;
+    // TODO: set these caps dynamically based on what AirSim is returning in image response
+    caps_source = gst_caps_new_simple ("video/x-raw",
+            "format", G_TYPE_STRING, "RGB",
+            "framerate", GST_TYPE_FRACTION, 30, 1,
+            "width", G_TYPE_INT, 256,
+            "height", G_TYPE_INT, 144,
+            NULL);
+
+    if (!gst_element_link_filtered(data->app_source, data->video_convert, caps_source)) {
+        g_printerr("Elements app_source and video_convert could not be linked.\n");
+        gst_object_unref (data->pipeline);
+        return -1;
+    }
+    gst_caps_unref(caps_source);
+    
+    if (gst_element_link_many (data->video_convert, data->app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
         gst_object_unref (data->pipeline);
         return -1;
@@ -124,7 +150,20 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 
 static vector<uint8_t> getOneImage() {
     // getImages provides more details about the image
-    return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
+    std::vector<ImageCaptureBase::ImageRequest> request = {
+        ImageCaptureBase::ImageRequest(
+            "front_center",
+            ImageCaptureBase::ImageType::Scene,
+            false,
+            false
+        )
+    };
+    
+    ImageCaptureBase::ImageResponse imageResponse = client.simGetImages(request)[0];
+    // g_print("\nImage Width: %d Height: %d", imageResponse.width, imageResponse.height);
+    return imageResponse.image_data_uint8;
+
+    // return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
 }
 
 
@@ -147,12 +186,15 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
             ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
-            // TODO: utilize return to exit program on failure and indicate failure
+            // see flow error type of GstFlowReturn
+            if (ret != 0) {
+                g_print("\nPush appsrc buffer flow error: %d\n", ret);
+            }
         }
         else {
             std::cout << "AppSrc element not yet created - image skipped" << std::endl;
         }
-        std::cout << "Image unit8 size: " << newImage.size() << std::endl;
+        // std::cout << "\nImage unit8 size: " << newImage.size() << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
     }
 }
