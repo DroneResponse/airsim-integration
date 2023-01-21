@@ -235,6 +235,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             // newImage.shrink_to_fit();
             std::rotate(newImage.rbegin(), newImage.rbegin() + 150, newImage.rend());
             map.data = newImage.data();
+            map.size = newImage.size();
+            map.maxsize = newImage.size();
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
             ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
