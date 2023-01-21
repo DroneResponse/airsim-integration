@@ -57,7 +57,7 @@ bus_call (GstBus     *bus,
 
 
 typedef struct _PipelineData {
-  GstElement *pipeline, *app_source, *app_sink, *video_convert;
+  GstElement *pipeline, *app_source, *app_sink, *video_convert, *video_raw_parse, *queue_0;
 
 //   guint64 num_samples;   /* Number of samples generated so far (for timestamp generation) */
 
@@ -74,6 +74,8 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 
     // Create the elements
     data->app_source = gst_element_factory_make ("appsrc", "video_source");
+    data->queue_0 = gst_element_factory_make ("queue", "queue_0");
+    data->video_raw_parse = gst_element_factory_make ("rawvideoparse", "video_raw_parse");
     data->video_convert = gst_element_factory_make ("videoconvert", "video_convert");
     data->app_sink = gst_element_factory_make ("autovideosink", "video_sink");
 
@@ -90,6 +92,10 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
         std::cout << data->app_sink;
         g_print("\nvideo_convert: ");
         std::cout << data->video_convert;
+        g_print("\nvideo_raw_parse: ");
+        std::cout << data->video_raw_parse;
+        g_print("\nqueue_0: ");
+        std::cout << data->queue_0;
 
         return -1;
     }
@@ -97,31 +103,73 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // element configuration goes here
     // g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
     // g_object_set(G_OBJECT(data->png_dec), "output-corrupt", TRUE, NULL);
+    // GValue plane_offsets = G_VALUE_INIT;
+    // g_value_init (&plane_offsets, GST_TYPE_ARRAY);
+    // GValue val = G_VALUE_INIT;
+    // g_value_init (&val, G_TYPE_INT);
+
+    // g_value_set_int(&val, (gint)256);
+    // gst_value_array_append_value(&plane_offsets, &val);
+    // gst_value_array_append_value(&plane_offsets, &val);
+
+    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
+
+    g_object_set(G_OBJECT(data->video_raw_parse), 
+                        "format", 15,
+                        "framerate", 30, 1,
+                        "width", 256,
+                        "height", 144,
+                        NULL);
 
     // link elements
     gst_bin_add_many(
         GST_BIN (data->pipeline),
         data->app_source,
+        data->queue_0,
+        data->video_raw_parse,
         data->video_convert,
-        data->app_sink, 
+        data->app_sink,
         NULL);
     
     GstCaps *caps_source;
     // TODO: set these caps dynamically based on what AirSim is returning in image response
     // and the fps set in main
-    caps_source = gst_caps_new_simple ("video/x-raw",
+    caps_source = gst_caps_new_simple ("video/x-unaligned-raw",
             "format", G_TYPE_STRING, "RGB",
             "framerate", GST_TYPE_FRACTION, 30, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
             NULL);
 
-    if (!gst_element_link_filtered(data->app_source, data->video_convert, caps_source)) {
-        g_printerr("Elements app_source and video_convert could not be linked.\n");
+    if (!gst_element_link_filtered(data->app_source, data->queue_0, caps_source)) {
+        g_printerr("Elements app_source and queue_0 could not be linked.\n");
         gst_object_unref (data->pipeline);
         return -1;
     }
     gst_caps_unref(caps_source);
+
+    if (!gst_element_link(data->queue_0, data->video_raw_parse)) {
+        g_printerr("Elements queue_0 and video_raw_parse could not be linked.\n");
+        gst_object_unref (data->pipeline);
+        return -1;
+    }
+
+    GstCaps *caps_parse;
+    // TODO: set these caps dynamically based on what AirSim is returning in image response
+    // and the fps set in main
+    caps_parse = gst_caps_new_simple ("video/x-raw",
+            "format", G_TYPE_STRING, "RGB",
+            "framerate", GST_TYPE_FRACTION, 30, 1,
+            "width", G_TYPE_INT, 256,
+            "height", G_TYPE_INT, 144,
+            NULL);
+
+    if (!gst_element_link_filtered(data->video_raw_parse, data->video_convert, caps_parse)) {
+        g_printerr("Elements video_raw_parse and video_convert could not be linked.\n");
+        gst_object_unref (data->pipeline);
+        return -1;
+    }
+    gst_caps_unref(caps_parse);
     
     if (gst_element_link_many (data->video_convert, data->app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
@@ -184,6 +232,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             buffer = gst_buffer_new_allocate(NULL, (gint)newImage.size(), NULL);
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+            // newImage.shrink_to_fit();
+            std::rotate(newImage.rbegin(), newImage.rbegin() + 150, newImage.rend());
             map.data = newImage.data();
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
