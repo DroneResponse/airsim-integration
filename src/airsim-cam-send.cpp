@@ -108,11 +108,16 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // GValue val = G_VALUE_INIT;
     // g_value_init (&val, G_TYPE_INT);
 
-    // g_value_set_int(&val, (gint)256);
+    // g_value_set_int(&val, (gint)144);
     // gst_value_array_append_value(&plane_offsets, &val);
     // gst_value_array_append_value(&plane_offsets, &val);
 
     // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
+    
+    g_object_set(G_OBJECT(data->app_source),
+                "do-timestamp", TRUE,
+                "format", 3,
+                NULL);
 
     g_object_set(G_OBJECT(data->video_raw_parse), 
                         "format", 15,
@@ -120,6 +125,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
                         "width", 256,
                         "height", 144,
                         NULL);
+
 
     // link elements
     gst_bin_add_many(
@@ -233,7 +239,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
             // newImage.shrink_to_fit();
-            std::rotate(newImage.rbegin(), newImage.rbegin() + 150, newImage.rend());
+            // shift RGB byte index right by 48 pixels * 3 channels = 144 bytes
+            std::rotate(newImage.rbegin(), newImage.rbegin() + 144, newImage.rend());
             map.data = newImage.data();
             map.size = newImage.size();
             map.maxsize = newImage.size();
