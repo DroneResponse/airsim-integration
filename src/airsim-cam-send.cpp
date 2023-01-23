@@ -115,13 +115,12 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
     
     g_object_set(G_OBJECT(data->app_source),
-                "do-timestamp", TRUE,
                 "format", 3,
                 NULL);
 
     g_object_set(G_OBJECT(data->video_raw_parse), 
                         "format", 15,
-                        "framerate", 30, 1,
+                        "framerate", 1, 1,
                         "width", 256,
                         "height", 144,
                         NULL);
@@ -142,7 +141,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // and the fps set in main
     caps_source = gst_caps_new_simple ("video/x-unaligned-raw",
             "format", G_TYPE_STRING, "RGB",
-            "framerate", GST_TYPE_FRACTION, 30, 1,
+            "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
             NULL);
@@ -165,7 +164,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // and the fps set in main
     caps_parse = gst_caps_new_simple ("video/x-raw",
             "format", G_TYPE_STRING, "RGB",
-            "framerate", GST_TYPE_FRACTION, 30, 1,
+            "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
             NULL);
@@ -216,6 +215,10 @@ static vector<uint8_t> getOneImage() {
     
     ImageCaptureBase::ImageResponse imageResponse = client.simGetImages(request)[0];
     // g_print("\nImage Width: %d Height: %d", imageResponse.width, imageResponse.height);
+    // for (int i = 0; i < 250; i++) {
+    //     g_print("%hhu ", imageResponse.image_data_uint8[i]);
+    // }
+    // g_print("\n\n");
     return imageResponse.image_data_uint8;
 
     // return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
@@ -225,6 +228,7 @@ static vector<uint8_t> getOneImage() {
 static void sendImageStream(PipelineData * pipelineData, int fps) {
     printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
 
+    int frame_count = 1;
     while(1) {
         vector<uint8_t> newImage = getOneImage();
         
@@ -236,6 +240,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             
             // create buffer and allocate memory
             buffer = gst_buffer_new_allocate(NULL, (gint)newImage.size(), NULL);
+            // set image presentation timestamp in nanoseconds
+            GST_BUFFER_TIMESTAMP(buffer) = frame_count * 1e9 / fps;
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
             // newImage.shrink_to_fit();
@@ -257,6 +263,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
         }
         // std::cout << "\nImage unit8 size: " << newImage.size() << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
+
+        frame_count++;
     }
 }
 
@@ -264,7 +272,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 int main(int argc, char *argv[]) {
     PipelineData data = {};
     
-    std::thread feedAppSrc(sendImageStream, &data, 30);
+    std::thread feedAppSrc(sendImageStream, &data, 1);
 
     int pipelineStatus = runGstreamer(&argc, &argv, &data);
 
