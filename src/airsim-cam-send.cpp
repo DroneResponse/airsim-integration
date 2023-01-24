@@ -250,9 +250,9 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             map.data = newImage.data();
             map.size = newImage.size();
             map.maxsize = newImage.size();
+            ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
-            ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
             // see flow error type of GstFlowReturn
             if (ret != 0) {
                 g_print("\nPush appsrc buffer flow error: %d\n", ret);
