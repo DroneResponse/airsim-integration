@@ -16,6 +16,8 @@ STRICT_MODE_ON
 #include <gst/gst.h>
 #include <gst/app/app.h>
 #include <glib.h>
+// these are just used for testing
+#include <fstream>
 
 using namespace msr::airlib;
 MultirotorRpcLibClient client;
@@ -202,7 +204,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 }
 
 
-static vector<uint8_t> getOneImage() {
+static vector<uint8_t> getOneImage(int frame) {
     // getImages provides more details about the image
     std::vector<ImageCaptureBase::ImageRequest> request = {
         ImageCaptureBase::ImageRequest(
@@ -219,6 +221,68 @@ static vector<uint8_t> getOneImage() {
     //     g_print("%hhu ", imageResponse.image_data_uint8[i]);
     // }
     // g_print("\n\n");
+
+    // attempt to indicate the beginning of the frame
+    // for (int i; i < 3; i++) {
+    //     imageResponse.image_data_uint8.insert(imageResponse.image_data_uint8.begin(), 0);
+    // }
+
+    // for (int i; i < 10; i++) {
+    //     if (imageResponse.image_data_uint8[i] == 0) {
+    //         g_print("Zero val at index: %d\n", i);
+    //     }
+    // }
+    // g_print("\n\n");
+    
+    // g_print("image timestamp: %llu\n", imageResponse.time_stamp);
+    // g_print("image type: %d\n\n", imageResponse.image_type);
+
+    // Vector
+    if (0) {
+        std::ofstream image_file;
+        image_file.open("./image_data/airsim_image_" + std::to_string(frame) + ".txt");
+        if (image_file.is_open()) {
+            for (int i = 1; i < imageResponse.height; i++) {
+                for (int j = 0; j < imageResponse.width * 3; j++) {
+                    if (imageResponse.image_data_uint8[j * i] < 100) {
+                        image_file << " " << std::to_string(imageResponse.image_data_uint8[j * i]) << " ";
+                    } else {
+                        image_file << std::to_string(imageResponse.image_data_uint8[j * i]) << " ";
+                    }
+                    if ((j + 1) % 3 == 0) {
+                        image_file << "| ";
+                    }
+                }
+                image_file << "\n";
+            }
+            image_file.close();
+        } else {
+            g_print("could not open file\n");
+        }
+
+        // underlying array
+        std::ofstream image_file_a;
+        image_file_a.open("./image_data/airsim_image_" + std::to_string(frame) + "a.txt");
+        if (image_file_a.is_open()) {
+            for (int i = 1; i < imageResponse.height; i++) {
+                for (int j = 0; j < imageResponse.width * 3; j++) {
+                    if (imageResponse.image_data_uint8.data()[j * i] < 100) {
+                        image_file_a << " " << std::to_string(imageResponse.image_data_uint8.data()[j * i]) << " ";
+                    } else {
+                        image_file_a << std::to_string(imageResponse.image_data_uint8.data()[j * i]) << " ";
+                    }
+                    if ((j + 1) % 3 == 0) {
+                        image_file_a << "| ";
+                    }
+                }
+                image_file_a << "\n";
+            }
+            image_file_a.close();
+        } else {
+            g_print("could not open file\n");
+        }
+    }
+    
     return imageResponse.image_data_uint8;
 
     // return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
@@ -230,7 +294,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
     unsigned long frame_count = 1;
     while(1) {
-        vector<uint8_t> newImage = getOneImage();
+        vector<uint8_t> newImage = getOneImage(frame_count);
         
         // check that appsrc element is created in gstreamer thread before using
         if (pipelineData->app_source) {
