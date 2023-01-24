@@ -228,7 +228,7 @@ static vector<uint8_t> getOneImage() {
 static void sendImageStream(PipelineData * pipelineData, int fps) {
     printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
 
-    int frame_count = 1;
+    unsigned long frame_count = 1;
     while(1) {
         vector<uint8_t> newImage = getOneImage();
         
