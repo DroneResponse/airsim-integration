@@ -6,6 +6,7 @@ project(AirSimCamSend)
 
 set(AIRSIM_ROOT /Users/jasonbrauer/drone_response/AirSim)
 set(GSTREAMER_ROOT /Library/Frameworks/GStreamer.framework)
+set(TINYTIFF_ROOT /Users/jasonbrauer/drone_response/TinyTIFF)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
@@ -28,6 +29,8 @@ include_directories(
     ${AIRSIM_ROOT}/AirLib/include
     # ${GST_INCLUDE_DIRS}
     ${GSTREAMER_ROOT}/Headers
+    ${TINYTIFF_ROOT}/src
+    ${TINYTIFF_ROOT}/build/src
 )
 
 link_directories(
@@ -49,5 +52,6 @@ target_link_libraries(
     AirLib
     rpc
     ${GST_LIBRARIES}
+    ${TINYTIFF_ROOT}/build/src/libTinyTIFF_Release.a
 )
 

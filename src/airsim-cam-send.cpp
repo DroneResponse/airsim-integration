@@ -18,6 +18,7 @@ STRICT_MODE_ON
 #include <glib.h>
 // these are just used for testing
 #include <fstream>
+#include <tinytiffwriter.h>
 
 using namespace msr::airlib;
 MultirotorRpcLibClient client;
@@ -306,15 +307,13 @@ static vector<uint8_t> getOneImage(int frame) {
 }
 
 
-// static std::vector<unint8_t> createTiff (std::vector<uint8_t> * rawImage) {
-//     std::vector<unint8_t> header = { 0x49, 0x49, 0x42, 0x00, 0x08, 0x00, 0x00, 0x00 };
-
-//     std::vector<unint8_t> ifd_0 = {0x00, 0x00};
-//     std::vector<unint8_t> ifd_offset = {0x00, 0x00, 0x00, 0x00};
-//     std::vector<unint8_t> field_0 = { 0x15, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-
-// } 
+void createTiff (std::vector<uint8_t> * rawImage, int frame_number) {
+    char buff[50];
+    snprintf(buff, 50, "airsim_cam_%d.tif", frame_number);
+    TinyTIFFWriterFile* tif=TinyTIFFWriter_open(buff, 8, TinyTIFFWriter_UInt, 0, 256, 144, TinyTIFFWriter_RGB);
+    TinyTIFFWriter_writeImage(tif, rawImage->data());
+    TinyTIFFWriter_close(tif);
+} 
 
 
 static void sendImageStream(PipelineData * pipelineData, int fps) {
@@ -349,6 +348,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             if (ret != 0) {
                 g_print("\nPush appsrc buffer flow error: %d\n", ret);
             }
+            createTiff(&newImage, frame_count);
         }
         else {
             std::cout << "AppSrc element not yet created - image skipped" << std::endl;
