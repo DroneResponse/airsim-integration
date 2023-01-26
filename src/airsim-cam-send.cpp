@@ -105,15 +105,15 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // element configuration goes here
     // g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
     // g_object_set(G_OBJECT(data->png_dec), "output-corrupt", TRUE, NULL);
-    GValue plane_offsets = G_VALUE_INIT;
-    g_value_init (&plane_offsets, GST_TYPE_ARRAY);
-    GValue oval = G_VALUE_INIT;
-    g_value_init (&oval, G_TYPE_INT);
+    // GValue plane_offsets = G_VALUE_INIT;
+    // g_value_init (&plane_offsets, GST_TYPE_ARRAY);
+    // GValue oval = G_VALUE_INIT;
+    // g_value_init (&oval, G_TYPE_INT);
 
-    g_value_set_int(&oval, (gint)0);
-    gst_value_array_append_value(&plane_offsets, &oval);
+    // g_value_set_int(&oval, (gint)0);
+    // gst_value_array_append_value(&plane_offsets, &oval);
 
-    g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
+    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
     
 
     // GValue plane_strides = G_VALUE_INIT;
@@ -129,6 +129,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     
     g_object_set(G_OBJECT(data->app_source),
                 "format", 3,
+                "is-live", true,
                 NULL);
 
     g_object_set(G_OBJECT(data->video_raw_parse), 
@@ -160,6 +161,8 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
             "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
+            "bpp", G_TYPE_INT, 24,
+            "depth", G_TYPE_INT, 8,
             NULL);
 
     if (!gst_element_link_filtered(data->app_source, data->queue_0, caps_source)) {
@@ -330,7 +333,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             // create buffer and allocate memory
             buffer = gst_buffer_new_allocate(NULL, (gint)newImage.size(), NULL);
             // set image presentation timestamp in nanoseconds
-            GST_BUFFER_TIMESTAMP(buffer) = frame_count * 1e9 / fps;
+            GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale (frame_count, 1000000000, fps);
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
             // newImage.shrink_to_fit();
