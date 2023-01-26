@@ -105,26 +105,38 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // element configuration goes here
     // g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
     // g_object_set(G_OBJECT(data->png_dec), "output-corrupt", TRUE, NULL);
-    // GValue plane_offsets = G_VALUE_INIT;
-    // g_value_init (&plane_offsets, GST_TYPE_ARRAY);
-    // GValue val = G_VALUE_INIT;
-    // g_value_init (&val, G_TYPE_INT);
+    GValue plane_offsets = G_VALUE_INIT;
+    g_value_init (&plane_offsets, GST_TYPE_ARRAY);
+    GValue oval = G_VALUE_INIT;
+    g_value_init (&oval, G_TYPE_INT);
 
-    // g_value_set_int(&val, (gint)144);
-    // gst_value_array_append_value(&plane_offsets, &val);
-    // gst_value_array_append_value(&plane_offsets, &val);
+    g_value_set_int(&oval, (gint)0);
+    gst_value_array_append_value(&plane_offsets, &oval);
 
-    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
+    g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
+    
+
+    // GValue plane_strides = G_VALUE_INIT;
+    // g_value_init (&plane_strides, GST_TYPE_ARRAY);
+    // GValue sval = G_VALUE_INIT;
+    // g_value_init (&sval, G_TYPE_INT);
+
+    // g_value_set_int(&sval, (gint)256 * 3);
+    // gst_value_array_append_value(&plane_strides, &sval);
+
+    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-strides", &plane_strides);
+
     
     g_object_set(G_OBJECT(data->app_source),
                 "format", 3,
                 NULL);
 
     g_object_set(G_OBJECT(data->video_raw_parse), 
-                        "format", 15,
+                        "format", 16,
                         "framerate", 1, 1,
                         "width", 256,
                         "height", 144,
+                        "frame-size", 256 * 144 * 3,
                         NULL);
 
 
@@ -141,8 +153,10 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     GstCaps *caps_source;
     // TODO: set these caps dynamically based on what AirSim is returning in image response
     // and the fps set in main
-    caps_source = gst_caps_new_simple ("video/x-unaligned-raw",
-            "format", G_TYPE_STRING, "RGB",
+    // x-unaligned-raw used by source elements which do not guarantee that the buffers they push out
+    // are timestamped and contain an integer amount of samples
+    caps_source = gst_caps_new_simple ("video/x-raw",
+            "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
@@ -165,7 +179,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // TODO: set these caps dynamically based on what AirSim is returning in image response
     // and the fps set in main
     caps_parse = gst_caps_new_simple ("video/x-raw",
-            "format", G_TYPE_STRING, "RGB",
+            "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
             "height", G_TYPE_INT, 144,
@@ -282,11 +296,22 @@ static vector<uint8_t> getOneImage(int frame) {
             g_print("could not open file\n");
         }
     }
-    
+
     return imageResponse.image_data_uint8;
 
     // return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
 }
+
+
+// static std::vector<unint8_t> createTiff (std::vector<uint8_t> * rawImage) {
+//     std::vector<unint8_t> header = { 0x49, 0x49, 0x42, 0x00, 0x08, 0x00, 0x00, 0x00 };
+
+//     std::vector<unint8_t> ifd_0 = {0x00, 0x00};
+//     std::vector<unint8_t> ifd_offset = {0x00, 0x00, 0x00, 0x00};
+//     std::vector<unint8_t> field_0 = { 0x15, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+
+// } 
 
 
 static void sendImageStream(PipelineData * pipelineData, int fps) {
@@ -310,7 +335,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
             // newImage.shrink_to_fit();
             // shift RGB byte index right by 48 pixels * 3 channels = 144 bytes
-            std::rotate(newImage.rbegin(), newImage.rbegin() + 144, newImage.rend());
+            // std::rotate(newImage.rbegin(), newImage.rbegin() + 144, newImage.rend());
             map.data = newImage.data();
             map.size = newImage.size();
             map.maxsize = newImage.size();
