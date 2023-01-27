@@ -16,9 +16,6 @@ STRICT_MODE_ON
 #include <gst/gst.h>
 #include <gst/app/app.h>
 #include <glib.h>
-// these are just used for testing
-#include <fstream>
-#include <tinytiffwriter.h>
 
 using namespace msr::airlib;
 MultirotorRpcLibClient client;
