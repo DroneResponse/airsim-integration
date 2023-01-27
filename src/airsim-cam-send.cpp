@@ -60,7 +60,7 @@ bus_call (GstBus     *bus,
 
 
 typedef struct _PipelineData {
-  GstElement *pipeline, *app_source, *app_sink, *video_convert, *video_raw_parse, *queue_0;
+  GstElement *pipeline, *app_source, *app_sink, *queue_0;
 
 //   guint64 num_samples;   /* Number of samples generated so far (for timestamp generation) */
 
@@ -78,8 +78,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // Create the elements
     data->app_source = gst_element_factory_make ("appsrc", "video_source");
     data->queue_0 = gst_element_factory_make ("queue", "queue_0");
-    data->video_raw_parse = gst_element_factory_make ("rawvideoparse", "video_raw_parse");
-    data->video_convert = gst_element_factory_make ("videoconvert", "video_convert");
     data->app_sink = gst_element_factory_make ("autovideosink", "video_sink");
 
     // create empty pipeline
@@ -93,10 +91,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
         std::cout << data->app_source;
         g_print("\napp_sink: ");
         std::cout << data->app_sink;
-        g_print("\nvideo_convert: ");
-        std::cout << data->video_convert;
-        g_print("\nvideo_raw_parse: ");
-        std::cout << data->video_raw_parse;
         g_print("\nqueue_0: ");
         std::cout << data->queue_0;
 
@@ -104,30 +98,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     }
 
     // element configuration goes here
-    // g_object_set(G_OBJECT(data->app_sink), "dump", TRUE, NULL); // dump data reveived by fakesink to stdout
-    // g_object_set(G_OBJECT(data->png_dec), "output-corrupt", TRUE, NULL);
-    // GValue plane_offsets = G_VALUE_INIT;
-    // g_value_init (&plane_offsets, GST_TYPE_ARRAY);
-    // GValue oval = G_VALUE_INIT;
-    // g_value_init (&oval, G_TYPE_INT);
-
-    // g_value_set_int(&oval, (gint)0);
-    // gst_value_array_append_value(&plane_offsets, &oval);
-
-    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-offsets", &plane_offsets);
-    
-
-    // GValue plane_strides = G_VALUE_INIT;
-    // g_value_init (&plane_strides, GST_TYPE_ARRAY);
-    // GValue sval = G_VALUE_INIT;
-    // g_value_init (&sval, G_TYPE_INT);
-
-    // g_value_set_int(&sval, (gint)256 * 3);
-    // gst_value_array_append_value(&plane_strides, &sval);
-
-    // g_object_set_property (G_OBJECT (data->video_raw_parse), "plane-strides", &plane_strides);
-
-    
     g_object_set(G_OBJECT(data->app_source),
                 "format", 3,
                 "is-live", true,
@@ -141,7 +111,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
                         "frame-size", 256 * 144 * 3,
                         NULL);
 
-
     // link elements
     gst_bin_add_many(
         GST_BIN (data->pipeline),
@@ -153,8 +122,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     GstCaps *caps_source;
     // TODO: set these caps dynamically based on what AirSim is returning in image response
     // and the fps set in main
-    // x-unaligned-raw used by source elements which do not guarantee that the buffers they push out
-    // are timestamped and contain an integer amount of samples
     caps_source = gst_caps_new_simple ("video/x-raw",
             "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, 1, 1,
