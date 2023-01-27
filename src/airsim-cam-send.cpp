@@ -150,7 +150,7 @@ int height, int framerate) {
 }
 
 
-static ImageCaptureBase::ImageResponse getOneImage(int frame) {
+static ImageCaptureBase::ImageResponse getOneImage() {
     // getImages provides more details about the image
     std::vector<ImageCaptureBase::ImageRequest> request = {
         ImageCaptureBase::ImageRequest(
@@ -168,9 +168,8 @@ static ImageCaptureBase::ImageResponse getOneImage(int frame) {
 static void sendImageStream(PipelineData * pipelineData, int fps) {
     printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
 
-    unsigned long frame_count = 1;
     while(1) {
-        ImageCaptureBase::ImageResponse new_image = getOneImage(frame_count);
+        ImageCaptureBase::ImageResponse new_image = getOneImage();
         pipelineData->image_width = new_image.width;
         pipelineData->image_height = new_image.height;
         
@@ -199,8 +198,6 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
-
-        frame_count++;
     }
 }
 
@@ -211,6 +208,7 @@ int main(int argc, char *argv[]) {
     
     std::thread feedAppSrc(sendImageStream, &data, framerate);
 
+    // wait for sendImageStream to get image data from AirSim
     while (1) {
         if (data.image_width != 0 && data.image_height != 0) {
             int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
