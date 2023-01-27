@@ -6,13 +6,16 @@ STRICT_MODE_OFF
 // #include "rpc/rpc_error.h"
 STRICT_MODE_ON
 
-#include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
 #include <iostream>
 #include <chrono>
+#include <stdexcept>
+#include <string>
 #include <thread>
-#include <gst/gst.h>
-#include <gst/app/app.h>
+
 #include <glib.h>
+#include <gst/app/app.h>
+#include <gst/gst.h>
+#include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
 
 using namespace msr::airlib;
 MultirotorRpcLibClient client;
@@ -204,6 +207,25 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
 int main(int argc, char *argv[]) {
     int framerate = 15;
+
+    int framerate_input = 0;
+    if (argc == 2) {
+        std::istringstream ss(argv[1]);
+        if (!(ss >> framerate_input)) {
+            std::cerr << "Invalid framerate: " << argv[1] << '\n';
+        } else if (!ss.eof()) {
+            std::cerr << "Trailing characters after framerate: " << argv[1] << '\n';
+        }
+        
+    } 
+    
+    if (framerate_input != 0 && framerate_input <= 60) {
+        framerate = framerate_input;
+        std::cout << "Framerate set to: " << framerate << " fps" << std::endl;
+    } else {
+        std::cout << "Framerate set to: " << framerate << " fps (Default)\n";
+    }
+
     PipelineData data = {};
     
     std::thread feedAppSrc(sendImageStream, &data, framerate);
