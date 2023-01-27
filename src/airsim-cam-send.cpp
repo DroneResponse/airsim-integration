@@ -55,12 +55,14 @@ bus_call (GstBus     *bus,
 
 typedef struct _PipelineData {
   GstElement *pipeline, *app_source, *app_sink, *queue_0;
-
   GMainLoop *main_loop;  /* GLib's Main Loop */
+
+  int image_width, image_height;
 } PipelineData;
 
 
-static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
+static int runGstreamer(int *argc, char **argv[], PipelineData *data, int width,
+int height, int framerate) {
     GstBus *bus;
     guint bus_watch_id;
 
@@ -108,9 +110,9 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     // and the fps set in main
     caps_source = gst_caps_new_simple("video/x-raw",
             "format", G_TYPE_STRING, "BGR",
-            "framerate", GST_TYPE_FRACTION, 1, 1,
-            "width", G_TYPE_INT, 256,
-            "height", G_TYPE_INT, 144,
+            "framerate", GST_TYPE_FRACTION, framerate, 1,
+            "width", G_TYPE_INT, width,
+            "height", G_TYPE_INT, height,
             "bpp", G_TYPE_INT, 24,
             "depth", G_TYPE_INT, 8,
             NULL);
@@ -148,7 +150,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 }
 
 
-static vector<uint8_t> getOneImage(int frame) {
+static ImageCaptureBase::ImageResponse getOneImage(int frame) {
     // getImages provides more details about the image
     std::vector<ImageCaptureBase::ImageRequest> request = {
         ImageCaptureBase::ImageRequest(
@@ -159,10 +161,7 @@ static vector<uint8_t> getOneImage(int frame) {
         )
     };
     
-    ImageCaptureBase::ImageResponse image_response = client.simGetImages(request)[0];
-    // g_print("\nImage Width: %d Height: %d", image_response.width, image_response.height);
-
-    return image_response.image_data_uint8;
+    return client.simGetImages(request)[0];
 }
 
 
@@ -171,7 +170,9 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
     unsigned long frame_count = 1;
     while(1) {
-        vector<uint8_t> newImage = getOneImage(frame_count);
+        ImageCaptureBase::ImageResponse new_image = getOneImage(frame_count);
+        pipelineData->image_width = new_image.width;
+        pipelineData->image_height = new_image.height;
         
         // check that appsrc element is created in gstreamer thread before using
         if (pipelineData->app_source) {
@@ -180,12 +181,11 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             GstFlowReturn ret;
             
             // create buffer and allocate memory
-            buffer = gst_buffer_new_allocate(NULL, (gsize)(newImage.size()), NULL);
+            buffer = gst_buffer_new_allocate(NULL, (gsize)(new_image.image_data_uint8.size()), NULL);
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
-            memcpy(map.data, newImage.data(), newImage.size());
-            map.size = newImage.size();
-            // map.maxsize = newImage.size();
+            memcpy(map.data, new_image.image_data_uint8.data(), new_image.image_data_uint8.size());
+            map.size = new_image.image_data_uint8.size();
             ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
@@ -206,20 +206,26 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
 
 int main(int argc, char *argv[]) {
+    int framerate = 15;
     PipelineData data = {};
     
-    std::thread feedAppSrc(sendImageStream, &data, 1);
+    std::thread feedAppSrc(sendImageStream, &data, framerate);
 
-    int pipeline_status = runGstreamer(&argc, &argv, &data);
+    while (1) {
+        if (data.image_width != 0 && data.image_height != 0) {
+            int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
+            data.image_height, framerate);
 
-    if (!pipeline_status) {
-        feedAppSrc.join();
+            if (!pipeline_status) {
+                feedAppSrc.join();
+            }
+
+            if (pipeline_status) {
+                std::cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << std::endl;
+            }
+
+            return pipeline_status;
+        }
     }
-
-    if (pipeline_status) {
-        std::cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << std::endl;
-    }
-
-    return pipeline_status;
 }
 
