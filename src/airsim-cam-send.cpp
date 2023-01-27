@@ -14,6 +14,7 @@ STRICT_MODE_ON
 #include <gst/app/app.h>
 #include <glib.h>
 
+using namespace std;
 using namespace msr::airlib;
 MultirotorRpcLibClient client;
 
@@ -80,13 +81,13 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     if (!data->pipeline || !data->app_source || !data->app_sink) {
         g_printerr("Not all elements could be created\n");
         g_print("\npipeline: ");
-        std::cout << data->pipeline;
+        cout << data->pipeline;
         g_print("\napp_source: ");
-        std::cout << data->app_source;
+        cout << data->app_source;
         g_print("\napp_sink: ");
-        std::cout << data->app_sink;
+        cout << data->app_sink;
         g_print("\nqueue_0: ");
-        std::cout << data->queue_0;
+        cout << data->queue_0;
 
         return -1;
     }
@@ -160,7 +161,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 
 static vector<uint8_t> getOneImage(int frame) {
     // getImages provides more details about the image
-    std::vector<ImageCaptureBase::ImageRequest> request = {
+    vector<ImageCaptureBase::ImageRequest> request = {
         ImageCaptureBase::ImageRequest(
             "front_center",
             ImageCaptureBase::ImageType::Scene,
@@ -205,10 +206,10 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             }
         }
         else {
-            std::cout << "AppSrc element not yet created - image skipped" << std::endl;
+            cout << "AppSrc element not yet created - image skipped" << endl;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
+        this_thread::sleep_for(chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
 
         frame_count++;
     }
@@ -218,7 +219,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 int main(int argc, char *argv[]) {
     PipelineData data = {};
     
-    std::thread feedAppSrc(sendImageStream, &data, 1);
+    thread feedAppSrc(sendImageStream, &data, 1);
 
     int pipeline_status = runGstreamer(&argc, &argv, &data);
 
@@ -227,7 +228,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (pipeline_status) {
-        std::cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << std::endl;
+        cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << endl;
     }
 
     return pipeline_status;
