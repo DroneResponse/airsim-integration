@@ -97,14 +97,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
                 "is-live", true,
                 NULL);
 
-    g_object_set(G_OBJECT(data->video_raw_parse), 
-                        "format", 16,
-                        "framerate", 1, 1,
-                        "width", 256,
-                        "height", 144,
-                        "frame-size", 256 * 144 * 3,
-                        NULL);
-
     // link elements
     gst_bin_add_many(
         GST_BIN (data->pipeline),
