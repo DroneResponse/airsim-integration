@@ -147,8 +147,6 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
         GST_BIN (data->pipeline),
         data->app_source,
         data->queue_0,
-        data->video_raw_parse,
-        data->video_convert,
         data->app_sink,
         NULL);
     
@@ -172,31 +170,8 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
         return -1;
     }
     gst_caps_unref(caps_source);
-
-    if (!gst_element_link(data->queue_0, data->video_raw_parse)) {
-        g_printerr("Elements queue_0 and video_raw_parse could not be linked.\n");
-        gst_object_unref (data->pipeline);
-        return -1;
-    }
-
-    GstCaps *caps_parse;
-    // TODO: set these caps dynamically based on what AirSim is returning in image response
-    // and the fps set in main
-    caps_parse = gst_caps_new_simple ("video/x-raw",
-            "format", G_TYPE_STRING, "BGR",
-            "framerate", GST_TYPE_FRACTION, 1, 1,
-            "width", G_TYPE_INT, 256,
-            "height", G_TYPE_INT, 144,
-            NULL);
-
-    if (!gst_element_link_filtered(data->video_raw_parse, data->video_convert, caps_parse)) {
-        g_printerr("Elements video_raw_parse and video_convert could not be linked.\n");
-        gst_object_unref (data->pipeline);
-        return -1;
-    }
-    gst_caps_unref(caps_parse);
     
-    if (gst_element_link_many (data->video_convert, data->app_sink, NULL) != TRUE) {
+    if (gst_element_link_many (data->queue_0, data->app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
         gst_object_unref (data->pipeline);
         return -1;
@@ -330,17 +305,17 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             GstFlowReturn ret;
             
             // create buffer and allocate memory
-            buffer = gst_buffer_new_allocate(NULL, (gint)newImage.size(), NULL);
+            buffer = gst_buffer_new_allocate(NULL, (gsize)(newImage.size()), NULL);
             // set image presentation timestamp in nanoseconds
-            GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale (frame_count, 1000000000, fps);
+            // GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale (frame_count, 1000000000, fps);
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
             // newImage.shrink_to_fit();
             // shift RGB byte index right by 48 pixels * 3 channels = 144 bytes
             // std::rotate(newImage.rbegin(), newImage.rbegin() + 144, newImage.rend());
-            map.data = newImage.data();
+            memcpy(map.data, newImage.data(), newImage.size());
             map.size = newImage.size();
-            map.maxsize = newImage.size();
+            // map.maxsize = newImage.size();
             ret = gst_app_src_push_buffer(GST_APP_SRC(pipelineData->app_source), buffer);
             // release buffer memory that was associated with map
             gst_buffer_unmap(buffer, &map);
@@ -348,7 +323,9 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             if (ret != 0) {
                 g_print("\nPush appsrc buffer flow error: %d\n", ret);
             }
-            createTiff(&newImage, frame_count);
+            if (0) {
+                createTiff(&newImage, frame_count);
+            }
         }
         else {
             std::cout << "AppSrc element not yet created - image skipped" << std::endl;
