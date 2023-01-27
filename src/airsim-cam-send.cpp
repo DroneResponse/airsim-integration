@@ -8,8 +8,6 @@ STRICT_MODE_ON
 
 #include <iostream>
 #include <chrono>
-#include <stdexcept>
-#include <string>
 #include <thread>
 
 #include <glib.h>
