@@ -1,6 +1,3 @@
-// compile only working: g++ -std=c++0x -c ./src/airsim-cam-send.cpp -o airsim-cam-send -I/Users/jasonbrauer/drone_response/AirSim/AirLib/include -I/Users/jasonbrauer/drone_response/AirSim/AirLib/deps/eigen3
-// w/ linking failing: g++ -std=c++0x ./src/airsim-cam-send.cpp -o airsim-cam-send -I/Users/jasonbrauer/drone_response/AirSim/AirLib/include -I/Users/jasonbrauer/drone_response/AirSim/AirLib/deps/eigen3 -L/Users/jasonbrauer/drone_response/AirSim/build_release/output/lib
-
 #include "common/common_utils/StrictMode.hpp"
 STRICT_MODE_OFF
 #ifndef RPCLIB_MSGPACK
