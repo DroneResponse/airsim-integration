@@ -125,7 +125,7 @@ int height, int framerate) {
     gst_caps_unref(caps_source);
     
     if (gst_element_link_many(data->queue_0, data->app_sink, NULL) != TRUE) {
-        g_printerr("Elements could not be linked.\n");
+        g_printerr("Elements queue_0 and app_sink could not be linked.\n");
         gst_object_unref(data->pipeline);
         return -1;
     }
