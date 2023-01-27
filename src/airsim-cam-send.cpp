@@ -56,8 +56,6 @@ bus_call (GstBus     *bus,
 typedef struct _PipelineData {
   GstElement *pipeline, *app_source, *app_sink, *queue_0;
 
-//   guint64 num_samples;   /* Number of samples generated so far (for timestamp generation) */
-
   GMainLoop *main_loop;  /* GLib's Main Loop */
 } PipelineData;
 
