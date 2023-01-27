@@ -177,85 +177,9 @@ static vector<uint8_t> getOneImage(int frame) {
     
     ImageCaptureBase::ImageResponse imageResponse = client.simGetImages(request)[0];
     // g_print("\nImage Width: %d Height: %d", imageResponse.width, imageResponse.height);
-    // for (int i = 0; i < 250; i++) {
-    //     g_print("%hhu ", imageResponse.image_data_uint8[i]);
-    // }
-    // g_print("\n\n");
-
-    // attempt to indicate the beginning of the frame
-    // for (int i; i < 3; i++) {
-    //     imageResponse.image_data_uint8.insert(imageResponse.image_data_uint8.begin(), 0);
-    // }
-
-    // for (int i; i < 10; i++) {
-    //     if (imageResponse.image_data_uint8[i] == 0) {
-    //         g_print("Zero val at index: %d\n", i);
-    //     }
-    // }
-    // g_print("\n\n");
-    
-    // g_print("image timestamp: %llu\n", imageResponse.time_stamp);
-    // g_print("image type: %d\n\n", imageResponse.image_type);
-
-    // Vector
-    if (0) {
-        std::ofstream image_file;
-        image_file.open("./image_data/airsim_image_" + std::to_string(frame) + ".txt");
-        if (image_file.is_open()) {
-            for (int i = 1; i < imageResponse.height; i++) {
-                for (int j = 0; j < imageResponse.width * 3; j++) {
-                    if (imageResponse.image_data_uint8[j * i] < 100) {
-                        image_file << " " << std::to_string(imageResponse.image_data_uint8[j * i]) << " ";
-                    } else {
-                        image_file << std::to_string(imageResponse.image_data_uint8[j * i]) << " ";
-                    }
-                    if ((j + 1) % 3 == 0) {
-                        image_file << "| ";
-                    }
-                }
-                image_file << "\n";
-            }
-            image_file.close();
-        } else {
-            g_print("could not open file\n");
-        }
-
-        // underlying array
-        std::ofstream image_file_a;
-        image_file_a.open("./image_data/airsim_image_" + std::to_string(frame) + "a.txt");
-        if (image_file_a.is_open()) {
-            for (int i = 1; i < imageResponse.height; i++) {
-                for (int j = 0; j < imageResponse.width * 3; j++) {
-                    if (imageResponse.image_data_uint8.data()[j * i] < 100) {
-                        image_file_a << " " << std::to_string(imageResponse.image_data_uint8.data()[j * i]) << " ";
-                    } else {
-                        image_file_a << std::to_string(imageResponse.image_data_uint8.data()[j * i]) << " ";
-                    }
-                    if ((j + 1) % 3 == 0) {
-                        image_file_a << "| ";
-                    }
-                }
-                image_file_a << "\n";
-            }
-            image_file_a.close();
-        } else {
-            g_print("could not open file\n");
-        }
-    }
 
     return imageResponse.image_data_uint8;
-
-    // return client.simGetImage("front_center", ImageCaptureBase::ImageType::Scene);
 }
-
-
-void createTiff (std::vector<uint8_t> * rawImage, int frame_number) {
-    char buff[50];
-    snprintf(buff, 50, "airsim_cam_%d.tif", frame_number);
-    TinyTIFFWriterFile* tif=TinyTIFFWriter_open(buff, 8, TinyTIFFWriter_UInt, 0, 256, 144, TinyTIFFWriter_RGB);
-    TinyTIFFWriter_writeImage(tif, rawImage->data());
-    TinyTIFFWriter_close(tif);
-} 
 
 
 static void sendImageStream(PipelineData * pipelineData, int fps) {
@@ -273,13 +197,8 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             
             // create buffer and allocate memory
             buffer = gst_buffer_new_allocate(NULL, (gsize)(newImage.size()), NULL);
-            // set image presentation timestamp in nanoseconds
-            // GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale (frame_count, 1000000000, fps);
             // fill writable map with (ideally writable) memory blocks in the buffer
             gst_buffer_map(buffer, &map, GST_MAP_WRITE);
-            // newImage.shrink_to_fit();
-            // shift RGB byte index right by 48 pixels * 3 channels = 144 bytes
-            // std::rotate(newImage.rbegin(), newImage.rbegin() + 144, newImage.rend());
             memcpy(map.data, newImage.data(), newImage.size());
             map.size = newImage.size();
             // map.maxsize = newImage.size();
@@ -290,14 +209,11 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             if (ret != 0) {
                 g_print("\nPush appsrc buffer flow error: %d\n", ret);
             }
-            if (0) {
-                createTiff(&newImage, frame_count);
-            }
         }
         else {
             std::cout << "AppSrc element not yet created - image skipped" << std::endl;
         }
-        // std::cout << "\nImage unit8 size: " << newImage.size() << std::endl;
+
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
 
         frame_count++;
