@@ -70,12 +70,12 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     gst_init(argc, argv);
 
     // Create the elements
-    data->app_source = gst_element_factory_make ("appsrc", "video_source");
-    data->queue_0 = gst_element_factory_make ("queue", "queue_0");
-    data->app_sink = gst_element_factory_make ("autovideosink", "video_sink");
+    data->app_source = gst_element_factory_make("appsrc", "video_source");
+    data->queue_0 = gst_element_factory_make("queue", "queue_0");
+    data->app_sink = gst_element_factory_make("autovideosink", "video_sink");
 
     // create empty pipeline
-    data->pipeline = gst_pipeline_new ("video-pipeline");
+    data->pipeline = gst_pipeline_new("video-pipeline");
 
     if (!data->pipeline || !data->app_source || !data->app_sink) {
         g_printerr("Not all elements could be created\n");
@@ -116,7 +116,7 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
     GstCaps *caps_source;
     // TODO: set these caps dynamically based on what AirSim is returning in image response
     // and the fps set in main
-    caps_source = gst_caps_new_simple ("video/x-raw",
+    caps_source = gst_caps_new_simple("video/x-raw",
             "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, 1, 1,
             "width", G_TYPE_INT, 256,
@@ -127,33 +127,33 @@ static int runGstreamer(int *argc, char **argv[], PipelineData *data) {
 
     if (!gst_element_link_filtered(data->app_source, data->queue_0, caps_source)) {
         g_printerr("Elements app_source and queue_0 could not be linked.\n");
-        gst_object_unref (data->pipeline);
+        gst_object_unref(data->pipeline);
         return -1;
     }
     gst_caps_unref(caps_source);
     
-    if (gst_element_link_many (data->queue_0, data->app_sink, NULL) != TRUE) {
+    if (gst_element_link_many(data->queue_0, data->app_sink, NULL) != TRUE) {
         g_printerr("Elements could not be linked.\n");
-        gst_object_unref (data->pipeline);
+        gst_object_unref(data->pipeline);
         return -1;
     }
 
     // start playing the pipeline
-    gst_element_set_state (data->pipeline, GST_STATE_PLAYING);
+    gst_element_set_state(data->pipeline, GST_STATE_PLAYING);
 
     // create and start main loop
     // add a message handler
-    data->main_loop = g_main_loop_new (NULL, FALSE);
+    data->main_loop = g_main_loop_new(NULL, FALSE);
 
-    bus = gst_pipeline_get_bus (GST_PIPELINE (data->pipeline));
-    bus_watch_id = gst_bus_add_watch (bus, bus_call, data->main_loop);
-    gst_object_unref (bus);
+    bus = gst_pipeline_get_bus(GST_PIPELINE (data->pipeline));
+    bus_watch_id = gst_bus_add_watch(bus, bus_call, data->main_loop);
+    gst_object_unref(bus);
 
-    g_main_loop_run (data->main_loop);
+    g_main_loop_run(data->main_loop);
 
     // Free resources
-    gst_element_set_state (data->pipeline, GST_STATE_NULL);
-    gst_object_unref (data->pipeline);
+    gst_element_set_state(data->pipeline, GST_STATE_NULL);
+    gst_object_unref(data->pipeline);
     return 0;
 }
 
@@ -169,10 +169,10 @@ static vector<uint8_t> getOneImage(int frame) {
         )
     };
     
-    ImageCaptureBase::ImageResponse imageResponse = client.simGetImages(request)[0];
-    // g_print("\nImage Width: %d Height: %d", imageResponse.width, imageResponse.height);
+    ImageCaptureBase::ImageResponse image_response = client.simGetImages(request)[0];
+    // g_print("\nImage Width: %d Height: %d", image_response.width, image_response.height);
 
-    return imageResponse.image_data_uint8;
+    return image_response.image_data_uint8;
 }
 
 
@@ -220,16 +220,16 @@ int main(int argc, char *argv[]) {
     
     std::thread feedAppSrc(sendImageStream, &data, 1);
 
-    int pipelineStatus = runGstreamer(&argc, &argv, &data);
+    int pipeline_status = runGstreamer(&argc, &argv, &data);
 
-    if (!pipelineStatus) {
+    if (!pipeline_status) {
         feedAppSrc.join();
     }
 
-    if (pipelineStatus) {
+    if (pipeline_status) {
         std::cout << "\nPipeline failed to run: terminating feedAppSrc and the program" << std::endl;
     }
 
-    return pipelineStatus;
+    return pipeline_status;
 }
 
