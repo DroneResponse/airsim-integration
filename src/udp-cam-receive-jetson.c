@@ -102,6 +102,7 @@ main (int   argc,
 
   GstCaps *caps_dec;
   caps_dec = gst_caps_new_simple ("video/x-h264",
+          "stream-format", G_TYPE_STRING, "byte-stream",
           NULL);
 
   if (!gst_element_link_filtered (h264parse, h264dec, caps_dec)){
