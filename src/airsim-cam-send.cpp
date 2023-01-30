@@ -108,7 +108,7 @@ int height, int framerate) {
                 "is-live", true,
                 NULL);
     g_object_set (G_OBJECT (data->sink_udp), "host", "192.168.2.2", NULL);
-    g_object_set (G_OBJECT (data->sink), "port", 5000, NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "port", 5000, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "speed-preset", 2, NULL);
