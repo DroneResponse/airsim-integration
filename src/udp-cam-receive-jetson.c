@@ -101,7 +101,7 @@ main (int   argc,
   gst_caps_unref (caps_source);
 
   GstCaps *caps_dec;
-  caps = gst_caps_new_simple ("video/x-h264",
+  caps_dec = gst_caps_new_simple ("video/x-h264",
           NULL);
 
   if (!gst_element_link_filtered (h264parse, h264dec, caps_dec)){
