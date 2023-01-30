@@ -125,8 +125,6 @@ int height, int framerate) {
         NULL);
     
     GstCaps *caps_source;
-    // TODO: set these caps dynamically based on what AirSim is returning in image response
-    // and the fps set in main
     caps_source = gst_caps_new_simple("video/x-raw",
             "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, framerate, 1,
