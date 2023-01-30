@@ -100,6 +100,12 @@ main (int   argc,
   }
   gst_caps_unref (caps_source);
 
+  if (!gst_element_link(rtpdec, h264parse)) {
+    g_printerr("Elements rtpdec and h264parse could not be linked.\n");
+    gst_object_unref(pipeline);
+    return -1;
+  }
+
   GstCaps *caps_dec;
   caps_dec = gst_caps_new_simple ("video/x-h264",
           "stream-format", G_TYPE_STRING, "byte-stream",
@@ -112,14 +118,15 @@ main (int   argc,
   }
   gst_caps_unref (caps_dec);
 
-  if (!gst_element_link(rtpdec, h264parse)) {
-    g_printerr("Elements rtpdec and h264parse could not be linked.\n");
+
+  if (!gst_element_link(h264dec, conv)) {
+    g_printerr("Elements h264dec and conv could not be linked.\n");
     gst_object_unref(pipeline);
     return -1;
   }
 
-  if (!gst_element_link_many (h264dec, conv, sink, NULL)) {
-    g_warning ("Failed to link h264dec -> conv -> sink!");
+  if (!gst_element_link(conv, sink)) {
+    g_printerr("Elements conv and sink could not be linked.\n");
     gst_object_unref(pipeline);
     return -1;
   }
