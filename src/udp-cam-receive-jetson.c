@@ -83,7 +83,7 @@ main (int   argc,
   /* we add all elements into the pipeline */
   /* video-src | WAV-demux | converter | alsa-output */
   gst_bin_add_many (GST_BIN (pipeline),
-                    source, rtpdec, h264dec, conv, sink, h264parse, NULL);
+                    source, rtpdec, h264dec, sink, h264parse, NULL);
 
   GstCaps *caps_source;
   caps_source = gst_caps_new_simple ("application/x-rtp",
@@ -119,17 +119,17 @@ main (int   argc,
   gst_caps_unref (caps_dec);
 
 
-  if (!gst_element_link(h264dec, conv)) {
-    g_printerr("Elements h264dec and conv could not be linked.\n");
+  if (!gst_element_link(h264dec, sink)) {
+    g_printerr("Elements h264dec and sink could not be linked.\n");
     gst_object_unref(pipeline);
     return -1;
   }
 
-  if (!gst_element_link(conv, sink)) {
-    g_printerr("Elements conv and sink could not be linked.\n");
-    gst_object_unref(pipeline);
-    return -1;
-  }
+  // if (!gst_element_link(conv, sink)) {
+  //   g_printerr("Elements conv and sink could not be linked.\n");
+  //   gst_object_unref(pipeline);
+  //   return -1;
+  // }
 
   /* Set the pipeline to "playing" state*/
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
