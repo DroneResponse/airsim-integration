@@ -59,7 +59,7 @@ main (int   argc,
   conv     = gst_element_factory_make ("videoconvert",  "converter");
   rtpdec   = gst_element_factory_make ("rtph264depay",  "rtp-decode");
 //   h264dec   = gst_element_factory_make ("vtdec_hw",  "h264-decode");
-  h264dec   = gst_element_factory_make ("omxh264dec",  "h264-decode");
+  h264dec   = gst_element_factory_make ("nvv4l2decoder",  "h264-decode");
   h264parse   = gst_element_factory_make ("h264parse",  "h264-parse");
 //   h264dec   = gst_element_factory_make ("decodebin",  "h264-decode");
   sink     = gst_element_factory_make ("ximagesink", "video-output");
