@@ -140,10 +140,30 @@ int height, int framerate) {
         return -1;
     }
     gst_caps_unref(caps_source);
+
+    if (!gst_element_link(data->queue_0, data->convert)) {
+        g_printerr("Elements queue_0 and convert could not be linked.\n");
+        gst_object_unref(data->pipeline);
+        return -1;
+    }
+
+
+    // encode from BGR to I420 because nvvidconv on receiving side doesn't receive BGR
+    GstCaps *caps_convert;
+    caps_convert = gst_caps_new_simple("video/x-raw",
+            "format", G_TYPE_STRING, "I420",
+            NULL);
+
+    if (!gst_element_link_filtered(data->convert, data->enc_h264, caps_convert)) {
+        g_printerr("Elements convert and enc_h264 could not be linked.\n");
+        gst_object_unref(data->pipeline);
+        return -1;
+    }
+    gst_caps_unref(caps_convert);
     
-    if (gst_element_link_many(data->queue_0, data->convert, data->enc_h264, data->enc_rtp,
-    data->sink_udp, NULL) != TRUE) {
-        g_printerr("Elements queue_0 through sink_udp could not be linked.\n");
+
+    if (gst_element_link_many(data->enc_h264, data->enc_rtp, data->sink_udp, NULL) != TRUE) {
+        g_printerr("Elements enc_h264 through sink_udp could not be linked.\n");
         gst_object_unref(data->pipeline);
         return -1;
     }
