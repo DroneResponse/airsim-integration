@@ -55,7 +55,7 @@ bus_call (GstBus     *bus,
 
 
 typedef struct _PipelineData {
-  GstElement *pipeline, *app_source, *app_sink, *queue_0;
+  GstElement *pipeline, *app_source, *sink_udp, *queue_0, *convert, *enc_h264, *enc_rtp;
   GMainLoop *main_loop;  /* GLib's Main Loop */
 
   int image_width, image_height;
@@ -73,21 +73,31 @@ int height, int framerate) {
     // Create the elements
     data->app_source = gst_element_factory_make("appsrc", "video_source");
     data->queue_0 = gst_element_factory_make("queue", "queue_0");
-    data->app_sink = gst_element_factory_make("autovideosink", "video_sink");
+    data->convert = gst_element_factory_make("videoconvert", "convert");
+    data->enc_h264 = gst_element_factory_make("x264enc", "enc_h264");
+    data->enc_rtp = gst_element_factory_make("rtph264pay", "enc_rtp");
+    data->sink_udp = gst_element_factory_make("udpsink", "sink_udp");
 
     // create empty pipeline
     data->pipeline = gst_pipeline_new("video-pipeline");
 
-    if (!data->pipeline || !data->app_source || !data->app_sink) {
+    if (!data->pipeline || !data->app_source || !data->sink_udp || !data->convert
+        || !data->enc_h264 || !data->enc_rtp) {
         g_printerr("Not all elements could be created\n");
         g_print("\npipeline: ");
         std::cout << data->pipeline;
         g_print("\napp_source: ");
         std::cout << data->app_source;
-        g_print("\napp_sink: ");
-        std::cout << data->app_sink;
+        g_print("\nsink_udp: ");
+        std::cout << data->sink_udp;
         g_print("\nqueue_0: ");
         std::cout << data->queue_0;
+        g_print("\nconvert: ");
+        std::cout << data->convert;
+        g_print("\nenc_h264: ");
+        std::cout << data->enc_h264;
+        g_print("\nenc_rtp: ");
+        std::cout << data->enc_rtp;
 
         return -1;
     }
@@ -97,13 +107,21 @@ int height, int framerate) {
                 "format", 3,
                 "is-live", true,
                 NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "host", "192.168.2.2", NULL);
+    g_object_set (G_OBJECT (data->sink), "port", 5000, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "speed-preset", 2, NULL);
 
     // link elements
     gst_bin_add_many(
         GST_BIN (data->pipeline),
         data->app_source,
         data->queue_0,
-        data->app_sink,
+        data->convert,
+        data->enc_h264,
+        data->enc_rtp,
+        data->sink_udp,
         NULL);
     
     GstCaps *caps_source;
@@ -125,8 +143,9 @@ int height, int framerate) {
     }
     gst_caps_unref(caps_source);
     
-    if (gst_element_link_many(data->queue_0, data->app_sink, NULL) != TRUE) {
-        g_printerr("Elements queue_0 and app_sink could not be linked.\n");
+    if (gst_element_link_many(data->queue_0, data->convert, data->enc_h264, data->enc_rtp,
+    data->sink_udp, NULL) != TRUE) {
+        g_printerr("Elements queue_0 through sink_udp could not be linked.\n");
         gst_object_unref(data->pipeline);
         return -1;
     }
