@@ -85,33 +85,43 @@ main (int   argc,
   gst_bin_add_many (GST_BIN (pipeline),
                     source, rtpdec, h264dec, conv, sink, h264parse, NULL);
 
-  gboolean link_ok;
-  GstCaps *caps;
-
-  caps = gst_caps_new_simple ("application/x-rtp",
+  GstCaps *caps_source;
+  caps_source = gst_caps_new_simple ("application/x-rtp",
           "encoding-name", G_TYPE_STRING, "H264",
           "payload", G_TYPE_INT, 96,
           "clock-rate", G_TYPE_INT, 90000,
           "media", G_TYPE_STRING, "video",
           NULL);
 
-  link_ok = gst_element_link_filtered (source, rtpdec, caps);
-  gst_caps_unref (caps);
-
-  if (!link_ok) {
+  if (!gst_element_link_filtered (source, rtpdec, caps_source)){
     g_warning ("Failed to link rtpenc and sink!");
+    gst_object_unref(pipeline);
+    return -1;
   }
-  
-  gboolean link_many_ok;
-  /* we link the elements together */
-  /* video-src -> WAV-demux -> converter -> auto-output */
-  link_many_ok = gst_element_link_many (rtpdec, h264parse, h264dec, conv, sink, NULL);
-//   link_many_ok = gst_element_link_many(rtpdec, sink, NULL);
+  gst_caps_unref (caps_source);
 
-  if (!link_many_ok) {
-    g_warning ("Failed to link remaining elements!");
+  GstCaps *caps_dec;
+  caps = gst_caps_new_simple ("video/x-h264",
+          NULL);
+
+  if (!gst_element_link_filtered (h264parse, h264dec, caps_dec)){
+    g_warning ("Failed to link h264parse and h264dec!");
+    gst_object_unref(pipeline);
+    return -1;
+  }
+  gst_caps_unref (caps_dec);
+
+  if (!gst_element_link(rtpdec, h264parse)) {
+    g_printerr("Elements rtpdec and h264parse could not be linked.\n");
+    gst_object_unref(pipeline);
+    return -1;
   }
 
+  if (!gst_element_link_many (h264dec, conv, sink, NULL)) {
+    g_warning ("Failed to link h264dec -> conv -> sink!");
+    gst_object_unref(pipeline);
+    return -1;
+  }
 
   /* Set the pipeline to "playing" state*/
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
