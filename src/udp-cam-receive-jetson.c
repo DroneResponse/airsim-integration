@@ -56,7 +56,7 @@ main (int   argc,
   /* Create gstreamer elements */
   pipeline = gst_pipeline_new ("video-player");
   source   = gst_element_factory_make ("udpsrc", "udp-input");
-  conv     = gst_element_factory_make ("videoconvert",  "converter");
+  conv     = gst_element_factory_make ("nvvidconv",  "converter");
   rtpdec   = gst_element_factory_make ("rtph264depay",  "rtp-decode");
 //   h264dec   = gst_element_factory_make ("vtdec_hw",  "h264-decode");
   h264dec   = gst_element_factory_make ("nvv4l2decoder",  "h264-decode");
