@@ -125,19 +125,12 @@ main (int   argc,
     return -1;
   }
 
-  GstCaps *caps_sink;
-  caps_sink = gst_caps_new_simple ("video/x-raw",
-          "framerate", GST_TYPE_FRACTION, 15, 1,
-          "width", G_TYPE_INT, 256,
-          "height", G_TYPE_INT, 144,
-          NULL);
-
-  if (!gst_element_link_filtered (conv, sink, caps_sink)){
-    g_warning ("Failed to link conv and sink!");
+  if (!gst_element_link(conv, sink)) {
+    g_printerr("Elements conv and sink could not be linked.\n");
     gst_object_unref(pipeline);
     return -1;
   }
-  gst_caps_unref (caps_sink);
+
 
   /* Set the pipeline to "playing" state*/
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
