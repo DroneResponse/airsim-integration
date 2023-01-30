@@ -62,7 +62,7 @@ main (int   argc,
   h264dec   = gst_element_factory_make ("nvv4l2decoder",  "h264-decode");
   h264parse   = gst_element_factory_make ("h264parse",  "h264-parse");
 //   h264dec   = gst_element_factory_make ("decodebin",  "h264-decode");
-  sink     = gst_element_factory_make ("xvimagesink", "video-output");
+  sink     = gst_element_factory_make ("ximagesink", "video-output");
 //   sink     = gst_element_factory_make ("fakesink", "video-output");
 
   if (!pipeline || !source || !conv || !sink || !rtpdec || !h264dec || !h264parse) {
