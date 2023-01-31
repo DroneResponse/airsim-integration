@@ -63,7 +63,7 @@ typedef struct _PipelineData {
 
 
 static int runGstreamer(int *argc, char **argv[], PipelineData *data, int width,
-int height, int framerate) {
+int height, int framerate, int port) {
     GstBus *bus;
     guint bus_watch_id;
 
@@ -247,23 +247,39 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
 
 int main(int argc, char *argv[]) {
     int framerate = 15;
-
     int framerate_input = 0;
-    if (argc == 2) {
-        std::istringstream ss(argv[1]);
-        if (!(ss >> framerate_input)) {
-            std::cerr << "Invalid framerate: " << argv[1] << '\n';
-        } else if (!ss.eof()) {
-            std::cerr << "Trailing characters after framerate: " << argv[1] << '\n';
+    int port = 5000;
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-f") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> framerate_input)) {
+                std::cerr << "Invalid framerate: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after framerate: " << argv[i + 1] << '\n';
+            }
         }
-        
-    } 
+
+        if (strcmp(argv[i], "-p") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> port)) {
+                std::cerr << "Invalid port: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
+            }
+        }
+    }
     
     if (framerate_input != 0 && framerate_input <= 60) {
         framerate = framerate_input;
         std::cout << "Framerate set to: " << framerate << " fps" << std::endl;
     } else {
-        std::cout << "Framerate set to: " << framerate << " fps (Default)\n";
+        std::cout << "Framerate set to: " << framerate << " fps (Default)" << std::endl;
+    }
+
+    if (port == 5000) {
+        std::cout << "Port set to: " << port << " (Default)" << std::endl;
+    } else {
+        std::cout << "Port set to: " << port << std::endl;
     }
 
     PipelineData data = {};
@@ -275,7 +291,7 @@ int main(int argc, char *argv[]) {
         if (data.image_width != 0 && data.image_height != 0) {
             std::cout << "Image width: " << data.image_width << ", height: " << data.image_height << std::endl;
             int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
-            data.image_height, framerate);
+            data.image_height, framerate, port);
 
             if (!pipeline_status) {
                 feedAppSrc.join();
