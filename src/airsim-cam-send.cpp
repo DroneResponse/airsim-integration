@@ -63,7 +63,7 @@ typedef struct _PipelineData {
 
 
 static int runGstreamer(int *argc, char **argv[], PipelineData *data, int width,
-int height, int framerate, int port) {
+int height, int framerate, int port, std::string address) {
     GstBus *bus;
     guint bus_watch_id;
 
@@ -107,8 +107,8 @@ int height, int framerate, int port) {
                 "format", 3,
                 "is-live", true,
                 NULL);
-    g_object_set (G_OBJECT (data->sink_udp), "host", "localhost", NULL);
-    g_object_set (G_OBJECT (data->sink_udp), "port", 5000, NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "host", G_STRINGIFY(address), NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "port", port, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "speed-preset", 2, NULL);
@@ -242,11 +242,12 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
     }
 }
 
-
 int main(int argc, char *argv[]) {
     int framerate = 15;
     int framerate_input = 0;
     int port = 5000;
+    std::string address = "localhost";
+
     for (int i=0; i < argc; i++) {
         if (strcmp(argv[i], "-f") == 0) {
             std::istringstream ss(argv[i + 1]);
@@ -265,6 +266,16 @@ int main(int argc, char *argv[]) {
                 std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
             }
         }
+        if (strcmp(argv[i], "-a") == 0) {
+            std::string ss = argv[i + 1];
+            if (strcmp(&ss.back(), " ") == 0) {
+                std::cerr << "Trailing spaces after address: " << ss << '\n';
+            } else if (!(std::count(ss.begin(), ss.end(), '.') == 3)) {
+                std::cerr << "Invalid address format: " << ss << '\n';
+            } else {
+                address = ss;
+            }
+        }
     }
     
     if (framerate_input != 0 && framerate_input <= 60) {
@@ -280,6 +291,12 @@ int main(int argc, char *argv[]) {
         std::cout << "Port set to: " << port << std::endl;
     }
 
+    if (address == "localhost") {
+        std::cout << "Address set to: " << address << " (Default)" << std::endl;
+    } else {
+        std::cout << "Address set to: " << address << std::endl;
+    }
+
     PipelineData data = {};
     
     std::thread feedAppSrc(sendImageStream, &data, framerate);
@@ -289,7 +306,7 @@ int main(int argc, char *argv[]) {
         if (data.image_width != 0 && data.image_height != 0) {
             std::cout << "Image width: " << data.image_width << ", height: " << data.image_height << std::endl;
             int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
-            data.image_height, framerate, port);
+            data.image_height, framerate, port, address);
 
             if (!pipeline_status) {
                 feedAppSrc.join();
