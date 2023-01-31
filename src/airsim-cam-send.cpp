@@ -172,18 +172,23 @@ int height, int framerate) {
     gst_element_set_state(data->pipeline, GST_STATE_PLAYING);
 
     // create and start main loop
-    // add a message handler
     data->main_loop = g_main_loop_new(NULL, FALSE);
 
+    // add a message handler
     bus = gst_pipeline_get_bus(GST_PIPELINE (data->pipeline));
     bus_watch_id = gst_bus_add_watch(bus, bus_call, data->main_loop);
     gst_object_unref(bus);
 
     g_main_loop_run(data->main_loop);
 
-    // Free resources
+    // free resources
+    g_print ("Returned, stopping playback\n");
     gst_element_set_state(data->pipeline, GST_STATE_NULL);
-    gst_object_unref(data->pipeline);
+
+    g_print ("Deleting pipeline\n");
+    gst_object_unref(GST_OBJECT(data->pipeline));
+    g_source_remove(bus_watch_id);
+    g_main_loop_unref(data->main_loop);
     return 0;
 }
 
