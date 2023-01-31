@@ -209,8 +209,6 @@ static ImageCaptureBase::ImageResponse getOneImage() {
 
 
 static void sendImageStream(PipelineData * pipelineData, int fps) {
-    printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
-
     while(1) {
         ImageCaptureBase::ImageResponse new_image = getOneImage();
         pipelineData->image_width = new_image.width;
