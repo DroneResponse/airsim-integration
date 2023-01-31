@@ -107,7 +107,7 @@ int height, int framerate, int port, std::string address) {
                 "format", 3,
                 "is-live", true,
                 NULL);
-    g_object_set (G_OBJECT (data->sink_udp), "host", G_STRINGIFY(address), NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "host", address.c_str(), NULL);
     g_object_set (G_OBJECT (data->sink_udp), "port", port, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
