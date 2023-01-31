@@ -107,7 +107,7 @@ int height, int framerate) {
                 "format", 3,
                 "is-live", true,
                 NULL);
-    g_object_set (G_OBJECT (data->sink_udp), "host", "192.168.2.2", NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "host", "localhost", NULL);
     g_object_set (G_OBJECT (data->sink_udp), "port", 5000, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
     g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
@@ -232,7 +232,7 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             }
         }
         else {
-            std::cout << "AppSrc element not yet created - image skipped" << std::endl;
+            g_print("AppSrc element not yet created - image skipped\n");
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
@@ -268,6 +268,7 @@ int main(int argc, char *argv[]) {
     // wait for sendImageStream to get image data from AirSim
     while (1) {
         if (data.image_width != 0 && data.image_height != 0) {
+            std::cout << "Image width: " << data.image_width << ", height: " << data.image_height << std::endl;
             int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
             data.image_height, framerate);
 
