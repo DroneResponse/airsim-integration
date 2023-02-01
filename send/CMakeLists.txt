@@ -1,11 +1,32 @@
 # gstreamer pkg-config setup instructions: https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig
 # need to set PKG_CONFIG_PATH and prepend gstreamer specific pkg-config to PATH
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+# /Users/jasonbrauer/drone_response/AirSim
+# /Library/Frameworks/GStreamer.framework
+# /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 project(AirSimCamSend)
 
-set(AIRSIM_ROOT /Users/jasonbrauer/drone_response/AirSim)
-set(GSTREAMER_ROOT /Library/Frameworks/GStreamer.framework)
+if (NOT DEFINED ENV{AIRSIM_ROOT})
+    message(FATAL_ERROR "set the env variable AIRSIM_ROOT to the AirSim install directory")
+else()
+    message(STATUS "AIRSIM_ROOT=" $ENV{AIRSIM_ROOT})
+endif()
+
+if (NOT DEFINED ENV{GSTREAMER_ROOT})
+    message(FATAL_ERROR "set the env variable GSTREAMER_ROOT to to Gstreamer.framework directory")
+else()
+    message(STATUS "GSTREAMER_ROOT=" $ENV{GSTREAMER_ROOT})
+endif()
+
+if (NOT DEFINED ENV{PKG_CONFIG_PATH})
+    message(WARNING "if compiling on Mac, gstreamer docs expect the PKG_CONFIG_PATH env variable to be set: https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig")
+else()
+    message(STATUS "PKG_CONFIG_PATH=" $ENV{PKG_CONFIG_PATH})
+endif()
+
+set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
+set(GSTREAMER_ROOT $ENV{GSTREAMER_ROOT})
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
