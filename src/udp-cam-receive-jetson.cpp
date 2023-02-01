@@ -33,7 +33,7 @@ bus_call (GstBus     *bus,
             break;
         }
         default:
-            break;
+        break;
     }
 
     return TRUE;
