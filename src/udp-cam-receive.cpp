@@ -69,7 +69,7 @@ static int runGstreamer(int port) {
     /* Set up the pipeline */
 
     /* we set the input filename to the source element */
-    g_object_set (G_OBJECT (source), "port", 5000, NULL);
+    g_object_set (G_OBJECT (source), "port", port, NULL);
 
     /* we add a message handler */
     bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
