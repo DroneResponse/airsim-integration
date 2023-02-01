@@ -37,15 +37,12 @@ bus_call (GstBus     *bus,
 }
 
 
-int main(int argc, char *argv[]) {
+static int runGstreamer(int port) {
   GMainLoop *loop;
 
   GstElement *pipeline, *source, *demux, *conv, *sink, *rtpdec, *h264dec, *h264parse;
   GstBus *bus;
   guint bus_watch_id;
-
-  /* Initialisation */
-  gst_init(&argc, &argv);
 
   loop = g_main_loop_new(NULL, FALSE);
 
@@ -137,4 +134,12 @@ int main(int argc, char *argv[]) {
   g_main_loop_unref(loop);
 
   return 0;
+}
+
+
+int main(int argc, char *argv[]) {
+  /* Gstreamer initialisation */
+  gst_init(&argc, &argv);
+
+  return runGstreamer(5000);
 }
