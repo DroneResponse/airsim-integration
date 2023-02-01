@@ -32,7 +32,6 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-# find_package(gazebo REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 # list pkg config libraries with 'pkg-config --list-all'
@@ -43,29 +42,23 @@ pkg_check_modules(GST REQUIRED gstreamer-1.0
 
 # ideally use ${GST_INCLUDE_DIRS}, but not successfully finding /Headers
 include_directories(
-    # ${GAZEBO_INCLUDE_DIRS}
     ${AIRSIM_ROOT}/AirLib/deps/eigen3
     ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
     ${AIRSIM_ROOT}/AirLib/include
-    # ${GST_INCLUDE_DIRS}
     ${GSTREAMER_ROOT}/Headers
 )
 
 link_directories(
-    # ${GAZEBO_LIBRARY_DIRS}
     ${AIRSIM_ROOT}/build_release/output/lib
-    # ${GST_LIBRARY_DIRS}
     ${GSTREAMER_ROOT}/Libraries
 )
 
-# list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 list(APPEND CMAKE_CXX_FLAGS)
 
 add_executable(${PROJECT_NAME} src/airsim-cam-send.cpp)
 
 target_link_libraries(
     ${PROJECT_NAME} 
-    # ${GAZEBO_LIBRARIES}
     pthread
     AirLib
     rpc
