@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include <gst/gst.h>
 #include <glib.h>
