@@ -61,7 +61,7 @@ static int runGstreamer(int port) {
     }
 
   /* element configuration */
-  g_object_set(G_OBJECT(source), "port", 5000, NULL);
+  g_object_set(G_OBJECT(source), "port", port, NULL);
 
     /* bus message handler */
     bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
@@ -138,8 +138,27 @@ static int runGstreamer(int port) {
 
 
 int main(int argc, char *argv[]) {
+    int port = 5000;
+
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-p") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> port)) {
+                std::cerr << "Invalid port: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
+            }
+        }
+    }
+
+    if (port == 5000) {
+        std::cout << "Port set to: " << port << " (Default)" << std::endl;
+    } else {
+        std::cout << "Port set to: " << port << std::endl;
+    }
+
     /* Gstreamer initialisation */
     gst_init(&argc, &argv);
 
-    return runGstreamer(5000);
+    return runGstreamer(port);
 }
