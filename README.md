@@ -64,7 +64,23 @@ After compiling from the build dir:
 All inputs are optional and will default to 'localhost', 5000, and 15 fps respectively. 
 
 ### Jetson receive
+After compiling from the build dir:
+```bash
+./udp-cam-receive-jetson -p <port>
+```
+
+Port input is optional and will default to 5000.
+
+Video window should open and display at the resolution and frame rate that the sender is streaming.
 
 ### Local receive
+After compiling from the build dir:
+```bash
+./udp-cam-receive -p <port>
+```
+
+Port input is optional and will default to 5000.
+
+Video window should open and display at the resolution and frame rate that the sender is streaming.
 
 
