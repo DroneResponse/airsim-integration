@@ -6,8 +6,9 @@ STRICT_MODE_OFF
 // #include "rpc/rpc_error.h"
 STRICT_MODE_ON
 
-#include <iostream>
 #include <chrono>
+#include <iostream>
+#include <sstream>
 #include <thread>
 
 #include <glib.h>
