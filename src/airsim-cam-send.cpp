@@ -6,8 +6,9 @@ STRICT_MODE_OFF
 // #include "rpc/rpc_error.h"
 STRICT_MODE_ON
 
-#include <iostream>
 #include <chrono>
+#include <iostream>
+#include <sstream>
 #include <thread>
 
 #include <glib.h>
@@ -55,7 +56,7 @@ bus_call (GstBus     *bus,
 
 
 typedef struct _PipelineData {
-  GstElement *pipeline, *app_source, *app_sink, *queue_0;
+  GstElement *pipeline, *app_source, *sink_udp, *queue_0, *convert, *enc_h264, *enc_rtp;
   GMainLoop *main_loop;  /* GLib's Main Loop */
 
   int image_width, image_height;
@@ -63,7 +64,7 @@ typedef struct _PipelineData {
 
 
 static int runGstreamer(int *argc, char **argv[], PipelineData *data, int width,
-int height, int framerate) {
+int height, int framerate, int port, std::string address) {
     GstBus *bus;
     guint bus_watch_id;
 
@@ -73,21 +74,31 @@ int height, int framerate) {
     // Create the elements
     data->app_source = gst_element_factory_make("appsrc", "video_source");
     data->queue_0 = gst_element_factory_make("queue", "queue_0");
-    data->app_sink = gst_element_factory_make("autovideosink", "video_sink");
+    data->convert = gst_element_factory_make("videoconvert", "convert");
+    data->enc_h264 = gst_element_factory_make("x264enc", "enc_h264");
+    data->enc_rtp = gst_element_factory_make("rtph264pay", "enc_rtp");
+    data->sink_udp = gst_element_factory_make("udpsink", "sink_udp");
 
     // create empty pipeline
     data->pipeline = gst_pipeline_new("video-pipeline");
 
-    if (!data->pipeline || !data->app_source || !data->app_sink) {
+    if (!data->pipeline || !data->app_source || !data->sink_udp || !data->convert
+        || !data->enc_h264 || !data->enc_rtp) {
         g_printerr("Not all elements could be created\n");
         g_print("\npipeline: ");
         std::cout << data->pipeline;
         g_print("\napp_source: ");
         std::cout << data->app_source;
-        g_print("\napp_sink: ");
-        std::cout << data->app_sink;
+        g_print("\nsink_udp: ");
+        std::cout << data->sink_udp;
         g_print("\nqueue_0: ");
         std::cout << data->queue_0;
+        g_print("\nconvert: ");
+        std::cout << data->convert;
+        g_print("\nenc_h264: ");
+        std::cout << data->enc_h264;
+        g_print("\nenc_rtp: ");
+        std::cout << data->enc_rtp;
 
         return -1;
     }
@@ -97,18 +108,24 @@ int height, int framerate) {
                 "format", 3,
                 "is-live", true,
                 NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "host", address.c_str(), NULL);
+    g_object_set (G_OBJECT (data->sink_udp), "port", port, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "bitrate", 500, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "tune", 0x00000004, NULL);
+    g_object_set (G_OBJECT (data->enc_h264), "speed-preset", 2, NULL);
 
     // link elements
     gst_bin_add_many(
         GST_BIN (data->pipeline),
         data->app_source,
         data->queue_0,
-        data->app_sink,
+        data->convert,
+        data->enc_h264,
+        data->enc_rtp,
+        data->sink_udp,
         NULL);
     
     GstCaps *caps_source;
-    // TODO: set these caps dynamically based on what AirSim is returning in image response
-    // and the fps set in main
     caps_source = gst_caps_new_simple("video/x-raw",
             "format", G_TYPE_STRING, "BGR",
             "framerate", GST_TYPE_FRACTION, framerate, 1,
@@ -124,9 +141,30 @@ int height, int framerate) {
         return -1;
     }
     gst_caps_unref(caps_source);
+
+    if (!gst_element_link(data->queue_0, data->convert)) {
+        g_printerr("Elements queue_0 and convert could not be linked.\n");
+        gst_object_unref(data->pipeline);
+        return -1;
+    }
+
+
+    // encode from BGR to I420 because nvvidconv on receiving side doesn't receive BGR
+    GstCaps *caps_convert;
+    caps_convert = gst_caps_new_simple("video/x-raw",
+            "format", G_TYPE_STRING, "I420",
+            NULL);
+
+    if (!gst_element_link_filtered(data->convert, data->enc_h264, caps_convert)) {
+        g_printerr("Elements convert and enc_h264 could not be linked.\n");
+        gst_object_unref(data->pipeline);
+        return -1;
+    }
+    gst_caps_unref(caps_convert);
     
-    if (gst_element_link_many(data->queue_0, data->app_sink, NULL) != TRUE) {
-        g_printerr("Elements queue_0 and app_sink could not be linked.\n");
+
+    if (gst_element_link_many(data->enc_h264, data->enc_rtp, data->sink_udp, NULL) != TRUE) {
+        g_printerr("Elements enc_h264 through sink_udp could not be linked.\n");
         gst_object_unref(data->pipeline);
         return -1;
     }
@@ -135,18 +173,23 @@ int height, int framerate) {
     gst_element_set_state(data->pipeline, GST_STATE_PLAYING);
 
     // create and start main loop
-    // add a message handler
     data->main_loop = g_main_loop_new(NULL, FALSE);
 
+    // add a message handler
     bus = gst_pipeline_get_bus(GST_PIPELINE (data->pipeline));
     bus_watch_id = gst_bus_add_watch(bus, bus_call, data->main_loop);
     gst_object_unref(bus);
 
     g_main_loop_run(data->main_loop);
 
-    // Free resources
+    // free resources
+    g_print ("Returned, stopping playback\n");
     gst_element_set_state(data->pipeline, GST_STATE_NULL);
-    gst_object_unref(data->pipeline);
+
+    g_print ("Deleting pipeline\n");
+    gst_object_unref(GST_OBJECT(data->pipeline));
+    g_source_remove(bus_watch_id);
+    g_main_loop_unref(data->main_loop);
     return 0;
 }
 
@@ -167,8 +210,6 @@ static ImageCaptureBase::ImageResponse getOneImage() {
 
 
 static void sendImageStream(PipelineData * pipelineData, int fps) {
-    printf("Milliseconds between frames: %d\n", (int)((1 / (float) fps) * 1e3));
-
     while(1) {
         ImageCaptureBase::ImageResponse new_image = getOneImage();
         pipelineData->image_width = new_image.width;
@@ -195,33 +236,66 @@ static void sendImageStream(PipelineData * pipelineData, int fps) {
             }
         }
         else {
-            std::cout << "AppSrc element not yet created - image skipped" << std::endl;
+            g_print("AppSrc element not yet created - image skipped\n");
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds((int)((1 / (float) fps) * 1e3)));
     }
 }
 
-
 int main(int argc, char *argv[]) {
     int framerate = 15;
-
     int framerate_input = 0;
-    if (argc == 2) {
-        std::istringstream ss(argv[1]);
-        if (!(ss >> framerate_input)) {
-            std::cerr << "Invalid framerate: " << argv[1] << '\n';
-        } else if (!ss.eof()) {
-            std::cerr << "Trailing characters after framerate: " << argv[1] << '\n';
+    int port = 5000;
+    std::string address = "localhost";
+
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-f") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> framerate_input)) {
+                std::cerr << "Invalid framerate: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after framerate: " << argv[i + 1] << '\n';
+            }
         }
-        
-    } 
+
+        if (strcmp(argv[i], "-p") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> port)) {
+                std::cerr << "Invalid port: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
+            }
+        }
+        if (strcmp(argv[i], "-a") == 0) {
+            std::string ss = argv[i + 1];
+            if (strcmp(&ss.back(), " ") == 0) {
+                std::cerr << "Trailing spaces after address: " << ss << '\n';
+            } else if (!(std::count(ss.begin(), ss.end(), '.') == 3)) {
+                std::cerr << "Invalid address format: " << ss << '\n';
+            } else {
+                address = ss;
+            }
+        }
+    }
     
     if (framerate_input != 0 && framerate_input <= 60) {
         framerate = framerate_input;
         std::cout << "Framerate set to: " << framerate << " fps" << std::endl;
     } else {
-        std::cout << "Framerate set to: " << framerate << " fps (Default)\n";
+        std::cout << "Framerate set to: " << framerate << " fps (Default)" << std::endl;
+    }
+
+    if (port == 5000) {
+        std::cout << "Port set to: " << port << " (Default)" << std::endl;
+    } else {
+        std::cout << "Port set to: " << port << std::endl;
+    }
+
+    if (address == "localhost") {
+        std::cout << "Address set to: " << address << " (Default)" << std::endl;
+    } else {
+        std::cout << "Address set to: " << address << std::endl;
     }
 
     PipelineData data = {};
@@ -231,8 +305,9 @@ int main(int argc, char *argv[]) {
     // wait for sendImageStream to get image data from AirSim
     while (1) {
         if (data.image_width != 0 && data.image_height != 0) {
+            std::cout << "Image width: " << data.image_width << ", height: " << data.image_height << std::endl;
             int pipeline_status = runGstreamer(&argc, &argv, &data, data.image_width,
-            data.image_height, framerate);
+            data.image_height, framerate, port, address);
 
             if (!pipeline_status) {
                 feedAppSrc.join();
