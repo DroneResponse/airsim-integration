@@ -98,6 +98,10 @@ void cbDroneAsCameraPose(ConstPosesStampedPtr& msg)
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
+
+    // initialize with nanf
+    msr::airlib::Quaternionr o(std::nanf(""), std::nanf(""), std::nanf(""), std::nanf(""));
+    msr::airlib::Vector3r p(std::nanf(""), std::nanf(""), std::nanf(""));
     
     if (count % MESSAGE_THROTTLE == 0) {
         std::cout << "The number of vehicles is: " << vehicleList.size();
@@ -177,15 +181,27 @@ void cbGlobalPose(ConstPosesStampedPtr& msg)
     std::cout << std::endl;
 }
 
-int main(int _argc, char** _argv)
+int main(int argc, char** argv)
 {
+    void (*localPoseCallback)(ConstPosesStampedPtr&) = &cbLocalPose;
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-c") == 0) {
+            localPoseCallback = &cbDroneAsCameraPose;
+        }
+    }
+
+    if (localPoseCallback == &cbDroneAsCameraPose) {
+        std::cout << "Drone pose will be set to global gimbal camera pose\n";
+    } else {
+        std::cout << "Drone pose will be set to global drone pose\n";
+    }
 
     client.confirmConnection();
     // don't want to call on every message because blocks for too long
     vehicleList = client.listVehicles();
 
     // Load gazebo
-    gazebo::client::setup(_argc, _argv);
+    gazebo::client::setup(argc, argv);
 
     // Create our node for communication
     gazebo::transport::NodePtr node(new gazebo::transport::Node());
@@ -193,7 +209,7 @@ int main(int _argc, char** _argv)
 
     // Listen to Gazebo topics
     // update freq ~250 hz
-    gazebo::transport::SubscriberPtr sub_pose1 = node->Subscribe("~/pose/local/info", cbLocalPose);
+    gazebo::transport::SubscriberPtr sub_pose1 = node->Subscribe("~/pose/local/info", *localPoseCallback);
     // update freq ~50 hz
     gazebo::transport::SubscriberPtr sub_pose2 = node->Subscribe("~/pose/info", cbGlobalPose);
 
