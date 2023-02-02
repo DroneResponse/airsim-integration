@@ -41,12 +41,22 @@ static constexpr int MESSAGE_THROTTLE = 100;
 using namespace msr::airlib;
 
 msr::airlib::MultirotorRpcLibClient client;
+std::vector<std::string> vehicleList;
 
 void cbLocalPose(ConstPosesStampedPtr& msg)
 {
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
+
+    if (count % MESSAGE_THROTTLE == 0) {
+        std::cout << "The number of vehicles is: " << vehicleList.size();
+        std::cout << "\n";
+
+        std::cout << "The first vehicle is: " << vehicleList[0];
+        std::cout << "\n" << std::endl;
+    }
+
     for (int i = 0; i < msg->pose_size(); i++) {
         auto x = msg->pose(i).position().x();
         auto y = msg->pose(i).position().y();
@@ -82,6 +92,64 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
     ++count;
 }
 
+
+void cbDroneAsCameraPose(ConstPosesStampedPtr& msg)
+{
+    std::cout << std::fixed;
+    std::cout << std::setprecision(3);
+    static int count = 0;
+    
+    if (count % MESSAGE_THROTTLE == 0) {
+        std::cout << "The number of vehicles is: " << vehicleList.size();
+        std::cout << "\n";
+
+        std::cout << "The first vehicle is: " << vehicleList[0];
+        std::cout << "\n" << std::endl;
+    }
+
+    for (int i = 0; i < msg->pose_size(); i++) {
+        auto x = msg->pose(i).position().x();
+        auto y = msg->pose(i).position().y();
+        auto z = msg->pose(i).position().z();
+        auto ow = msg->pose(i).orientation().w();
+        auto ox = msg->pose(i).orientation().x();
+        auto oy = msg->pose(i).orientation().y();
+        auto oz = msg->pose(i).orientation().z();
+        if (count % MESSAGE_THROTTLE == 0) {
+            std::cout << "local (" << std::setw(2) << i << ") ";
+            std::cout << std::left << std::setw(32) << msg->pose(i).name();
+            std::cout << " x: " << std::right << std::setw(NWIDTH) << x;
+            std::cout << " y: " << std::right << std::setw(NWIDTH) << y;
+            std::cout << " z: " << std::right << std::setw(NWIDTH) << z;
+
+            std::cout << " ow: " << std::right << std::setw(NWIDTH) << ow;
+            std::cout << " ox: " << std::right << std::setw(NWIDTH) << ox;
+            std::cout << " oy: " << std::right << std::setw(NWIDTH) << oy;
+            std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
+            std::cout << std::endl;
+        }
+        // update freq ~250 hz
+        // set drone position from drone position
+        // TODO: set at camera's center position, not drone's
+        if (i == 0) {
+            msr::airlib::Vector3r p(x, -y, -z);   
+        }
+        // set drone attitude from camera attitude
+        if (msg->pose(i).name() == "typhoon_h480::cgo3_camera_link") {
+            msr::airlib::Quaternionr o(ow, ox, -oy, -oz);
+        }
+
+        // TODO: loop through vehicles for multidrone sim
+        client.simSetVehiclePose(Pose(p, o), true, vehicleList[0]);
+    }
+    if (count % MESSAGE_THROTTLE == 0) {
+        std::cout << std::endl;
+    }
+
+    ++count;
+}
+
+
 void cbGlobalPose(ConstPosesStampedPtr& msg)
 {
     std::cout << std::fixed;
@@ -113,6 +181,8 @@ int main(int _argc, char** _argv)
 {
 
     client.confirmConnection();
+    // don't want to call on every message because blocks for too long
+    vehicleList = client.listVehicles();
 
     // Load gazebo
     gazebo::client::setup(_argc, _argv);
@@ -122,7 +192,9 @@ int main(int _argc, char** _argv)
     node->Init();
 
     // Listen to Gazebo topics
+    // update freq ~250 hz
     gazebo::transport::SubscriberPtr sub_pose1 = node->Subscribe("~/pose/local/info", cbLocalPose);
+    // update freq ~50 hz
     gazebo::transport::SubscriberPtr sub_pose2 = node->Subscribe("~/pose/info", cbGlobalPose);
 
     while (true)
