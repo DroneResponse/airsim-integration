@@ -106,4 +106,18 @@ Port input is optional and will default to 5000.
 
 Video window should open and display at the resolution and frame rate that the sender is streaming.
 
+### Gazebo
+- Gazebo and AirSim simulations need to be running for this program to translate gazebo poses to AirSim poses
+    - the gazebo simulation can be headless
+- If utilizing camera pose, make sure to use the gazebo `typhoon_h480` drone that includes a camera on a gimbal and publishes the camera pose
+
+After compiling from the build dir:
+```bash
+./DronePose <optional -c>
+```
+
+The `-c` flag indicates that the AirSim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the camera in line with the camera pose in gazebo.
+
+No flag will set the drone pose to the gazebo drone's pose.
+
 
