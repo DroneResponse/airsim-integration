@@ -1,4 +1,4 @@
-# Gstreamer-Airsim
+# Airsim-Intrgration
 This repository includes gstreamer pipelines to stream video frames from Unreal Engine based [AirSim's camera's](https://microsoft.github.io/AirSim/image_apis/) over UDP.
 
 ## Dependencies
