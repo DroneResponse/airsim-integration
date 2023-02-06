@@ -118,6 +118,8 @@ After compiling from the build dir:
 
 The `-c` flag indicates that the AirSim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the camera in line with the camera pose in gazebo.
 
+The `-r` flag will artificially override and remove any gimbal camera roll.
+
 No flag will set the drone pose to the gazebo drone's pose.
 
 
