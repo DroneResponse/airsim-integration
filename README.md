@@ -56,6 +56,27 @@ mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
 
+### Gazebo
+Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications.
+
+_Additional dependencies:_
+- cmake
+- [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
+    - for Arm Mac's, must be [compiled using rosetta in X86 terminal](https://docs.px4.io/main/en/dev_setup/dev_env_mac.html#macos-development-environment)
+    - the same X86 terminal will need to be used to compile gazebo DronePose in this repo
+
+Set required environment variables:
+- AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
+
+```bash
+# starting from 'gazebo' dir
+mkdir build
+cd build
+cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
+make
+```
+
+
 ## Running
 ### Airsim send - sends airsim stream from front-center drone camera
 After compiling from the build dir:
@@ -84,5 +105,21 @@ After compiling from the build dir:
 Port input is optional and will default to 5000.
 
 Video window should open and display at the resolution and frame rate that the sender is streaming.
+
+### Gazebo
+- Gazebo and AirSim simulations need to be running for this program to translate gazebo poses to AirSim poses
+    - the gazebo simulation can be headless
+- If utilizing camera pose, make sure to use the gazebo `typhoon_h480` drone that includes a camera on a gimbal and publishes the camera pose
+
+After compiling from the build dir:
+```bash
+./DronePose <optional -c>
+```
+
+The `-c` flag indicates that the AirSim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the camera in line with the camera pose in gazebo.
+
+The `-r` flag will artificially override and remove any gimbal camera roll.
+
+No flag will set the drone pose to the gazebo drone's pose.
 
 
