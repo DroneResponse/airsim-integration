@@ -95,20 +95,24 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
 
 
 // TODO: add C doctring
-static Eigen::Vector4f camDroneToGlobal(
+static msr::airlib::Quaternionr camDroneToGlobal(
     msr::airlib::Quaternionr camDroneOrientation,
     msr::airlib::Quaternionr droneOrientation
 ) {
-    // TODO: need to remove pitch and roll from drone orientation since camera pitch and roll
+    // need to remove pitch and roll from drone orientation since camera pitch and roll
     // are already in the world frame
-    msr::airlib::Quaternionr cam_global_orientation = droneOrientation * camDroneOrientation;
+    // assume x = roll, y = pitch, z = yaw
+    float drone_yaw = msr::airlib::VectorMath::getYaw(droneOrientation);
+    msr::airlib::Quaternionr drone_orientation_yaw_only(
+        std::cos(drone_yaw / 2.0),
+        0,
+        0,
+        std::sin(drone_yaw / 2.0));
 
-    return Eigen::Vector4f(
-        cam_global_orientation.w(),
-        cam_global_orientation.x(),
-        cam_global_orientation.y(),
-        cam_global_orientation.z()
-    );
+    // msr::airlib::Quaternionr cam_global_orientation = drone_orientation_yaw_only * camDroneOrientation;
+    return drone_orientation_yaw_only * camDroneOrientation;
+
+    // yaw is working, but pitch and roll of drone appears to follow that of drone and not cam
 }
 
 
@@ -158,20 +162,22 @@ void cbDroneAsCameraPose(ConstPosesStampedPtr& msg)
         // TODO: set at camera's center position, not drone's
         if (i == 0) {
             p = msr::airlib::Vector3r(x, -y, -z);
-            drone_world_o = Eigen::Vector4f(ow, ox, -oy, -oz);
+            // TODO: looks like can update with QuaternionBase too
+            drone_world_o = msr::airlib::Quaternionr(ow, ox, -oy, -oz);
             if (count % MESSAGE_THROTTLE == 0) {
-                std::cout << "Camera drone quaternion: " << cam_drone_o.vec() << std::endl;
-                std::cout << "Drone world quaternion: " << drone_world_o.vec() << std::endl;
+                std::cout << "Camera drone quaternion (xyzw): \n" << cam_drone_o.coeffs() << std::endl;
+                std::cout << "Drone world quaternion (xyzw): \n" << drone_world_o.coeffs() << std::endl;
             }
         }
         // set drone attitude from camera attitude
         if (msg->pose(i).name() == "typhoon_h480::cgo3_camera_link") {
             // orientation of the camera in drone's reference frame
             // cam_drone_o(ow, ox, -oy, -oz);
-            cam_drone_o = Eigen::Vector4f(ow, ox, -oy, -oz);
+            // cam_drone_o = Eigen::Vector4f(ow, ox, -oy, -oz);
+            cam_drone_o = msr::airlib::Quaternionr(ow, ox, -oy, -oz);
             if (count % MESSAGE_THROTTLE == 0) {
-                std::cout << "Camera drone quaternion: " << cam_drone_o.vec() << std::endl;
-                std::cout << "Drone world quaternion: " << drone_world_o.vec() << std::endl;
+                std::cout << "Camera drone quaternion (xyzw): \n" << cam_drone_o.coeffs() << std::endl;
+                std::cout << "Drone world quaternion (xyzw): \n" << drone_world_o.coeffs() << std::endl;
             }
         }
 
@@ -180,7 +186,7 @@ void cbDroneAsCameraPose(ConstPosesStampedPtr& msg)
         //     std::cout << "Cam global orientation:" << cam_global_o.vec() << std::endl;
         // }
         // TODO: loop through vehicles for multidrone sim
-        client.simSetVehiclePose(Pose(p, drone_world_o), true, vehicleList[0]);
+        client.simSetVehiclePose(Pose(p, cam_global_o), true, vehicleList[0]);
     }
     if (count % MESSAGE_THROTTLE == 0) {
         std::cout << std::endl;
