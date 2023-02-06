@@ -43,6 +43,7 @@ using namespace msr::airlib;
 
 msr::airlib::MultirotorRpcLibClient client;
 std::vector<std::string> vehicleList;
+bool rollOverride = false;
 
 
 /**
@@ -147,6 +148,7 @@ static msr::airlib::Quaternionr removeRoll(msr::airlib::Quaternionr orientation)
     return orientation_yaw_only * orientation_pitch_only;
 }
 
+
 /**
  * local pose callback where gazebo typhoon_h480 gimbal camera represents airsim drone's global pose
  * @param msg gazebo message
@@ -205,7 +207,11 @@ void cbDroneAsCameraPose(ConstPosesStampedPtr& msg)
         // set drone attitude from camera attitude
         if (msg->pose(i).name() == "typhoon_h480::cgo3_camera_link") {
             // orientation of the camera in drone's reference frame
-            cam_drone_o = removeRoll(msr::airlib::Quaternionr(ow, ox, -oy, -oz));
+            if (rollOverride) {
+                cam_drone_o = removeRoll(msr::airlib::Quaternionr(ow, ox, -oy, -oz));
+            } else {
+                cam_drone_o = msr::airlib::Quaternionr(ow, ox, -oy, -oz);
+            }
             if (count % MESSAGE_THROTTLE == 0) {
                 std::cout << "Camera drone quaternion (xyzw): \n" << cam_drone_o.coeffs() << std::endl;
                 std::cout << "Drone world quaternion (xyzw): \n" << drone_world_o.coeffs() << std::endl;
@@ -262,12 +268,19 @@ int main(int argc, char** argv)
         if (strcmp(argv[i], "-c") == 0) {
             localPoseCallback = &cbDroneAsCameraPose;
         }
+        if (strcmp(argv[i], "-r") == 0) {
+            rollOverride = true;
+        }
     }
 
     if (localPoseCallback == &cbDroneAsCameraPose) {
         std::cout << "Drone pose will be set to global gimbal camera pose\n";
     } else {
         std::cout << "Drone pose will be set to global drone pose\n";
+    }
+
+    if (rollOverride) {
+        std::cout << "Camera roll will be artifically removed\n";
     }
 
     client.confirmConnection();
