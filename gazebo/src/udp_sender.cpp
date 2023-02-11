@@ -17,7 +17,6 @@ UDPSender::UDPSender(std::string host, unsigned short dest_port) {
     hints.ai_addr = NULL;
     hints.ai_next = NULL;
 
-    // struct hostent *server = gethostbyname(this->host.c_str());
     // https://man7.org/linux/man-pages/man3/getaddrinfo.3.html
     int response_code = getaddrinfo(
         this->host.c_str(),
