@@ -30,25 +30,6 @@
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
-// we need a struct that has fields for
-// drone position and attitude
-// camera position and attitude
-#pragma pack
-typedef struct {
-    double x;
-    double y;
-    double z;
-    double w;
-    double xi;
-    double yj;
-    double zk;
-} Pose;
-
-#pragma pack
-typedef struct {
-    Pose drone;
-    Pose camera;
-} PoseMessage;
 
 /**
  * local pose callback where gazebo drone represents airsim drone's global pose
