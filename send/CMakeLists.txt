@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project(AirSimCamSend)
 
@@ -8,11 +8,6 @@ else()
     message(STATUS "AIRSIM_ROOT=" $ENV{AIRSIM_ROOT})
 endif()
 
-if (NOT DEFINED ENV{GSTREAMER_ROOT})
-    message(FATAL_ERROR "set the env variable GSTREAMER_ROOT to to Gstreamer.framework directory")
-else()
-    message(STATUS "GSTREAMER_ROOT=" $ENV{GSTREAMER_ROOT})
-endif()
 
 if (NOT DEFINED ENV{PKG_CONFIG_PATH})
     message(WARNING "if compiling on Mac, gstreamer docs expect the PKG_CONFIG_PATH env variable to be set: https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig")
@@ -40,13 +35,16 @@ include_directories(
     ${AIRSIM_ROOT}/AirLib/deps/eigen3
     ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
     ${AIRSIM_ROOT}/AirLib/include
-    ${GSTREAMER_ROOT}/Headers
+    ${GST_INCLUDE_DIRS}
 )
+ message(STATUS "GST_INCLUDE_DIRS=" ${GST_INCLUDE_DIRS})
 
 link_directories(
     ${AIRSIM_ROOT}/build_release/output/lib
-    ${GSTREAMER_ROOT}/Libraries
+    ${GST_LIBRARIES}
+    /usr/lib/llvm-8/lib
 )
+ message(STATUS "GST_LIBRARIES=" ${GST_LIBRARIES})
 
 list(APPEND CMAKE_CXX_FLAGS)
 
