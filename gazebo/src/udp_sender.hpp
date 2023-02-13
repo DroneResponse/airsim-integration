@@ -18,6 +18,7 @@ class UDPSender {       // The class
         std::string host;  // Attribute (string variable)
         int sock;
         PoseTransfer::UdpPoseMessage pose_to_udp_message(PoseTransfer::PoseMessage);
+        uint64_t double_to_udp_uint64(double d_field);
 };
 
 #endif
