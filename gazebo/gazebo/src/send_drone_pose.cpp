@@ -32,6 +32,9 @@
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
+// TODO - use function generator to set host and port in gazebo callbacks instead of globals here
+std::string airsim_host = "127.0.0.1";
+unsigned short airsim_port = 50000;
 
 /**
  * local pose callback where gazebo drone represents airsim drone's global pose
@@ -43,6 +46,12 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
+    static const UDPSender::UDPSender(airsim_host, airsim_port) udp_sender;
+
+    PoseTransfer::Pose drone_pose;
+    PoseTransfer::Pose camera_pose;
+    memset(&drone_pose, 0, sizeof(drone_pose));
+    memset(&camera_pose, 0, sizeof(camera_pose));
 
     for (int i = 0; i < msg->pose_size(); i++) {
         auto x = msg->pose(i).position().x();
@@ -65,7 +74,35 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
             std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
             std::cout << std::endl;
         }
+        if (i == 0) {
+            drone_pose.x = x;
+            drone_pose.y = y;
+            drone_pose.z = z;
+            drone_pose.w = ow;
+            drone_pose.xi = ox;
+            drone_pose.yj = oy;
+            drone_pose.zk = oz;
+        }
+        if (msg->pose(i).name() == "typhoon_h480::cgo3_camera_link") {
+            camera_pose.x = x;
+            camera_pose.y = y;
+            camera_pose.z = z;
+            camera_pose.w = ow;
+            camera_pose.xi = ox;
+            camera_pose.yj = oy;
+            camera_pose.zk = oz;
+        }
     }
+
+    if (drone_pose.x != 0 && camera_pose.x != 0) {
+        PoseTransfer::PoseMessage pose_message {
+            .message_counter = count,
+            .drone = drone_pose,
+            .camera = camera_pose
+        };
+        udp_sender.send_pose_message(pose_message);
+    }
+
     if (count % MESSAGE_THROTTLE == 0) {
         std::cout << std::endl;
     }
