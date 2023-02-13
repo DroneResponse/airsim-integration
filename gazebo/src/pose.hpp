@@ -6,7 +6,6 @@
 // we need a struct that has fields for
 // drone position and attitude
 // camera position and attitude
-#pragma pack(push,1)
 typedef struct Pose {
     double x;
     double y;
@@ -23,6 +22,5 @@ typedef struct PoseMessage {
     Pose camera;
 } PoseMessage;
 
-#pragma pack(pop)
 
 #endif
