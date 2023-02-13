@@ -53,9 +53,10 @@ UDPSender::UDPSender(std::string host, unsigned short dest_port) {
     }
 }
 
-void UDPSender::send_pose_message(const PoseMessage& pose_message) {
+
+void UDPSender::send_pose_message(const PoseMessage pose_message) {
     // send pose message to airsim
-    send(this->sock, &pose_message, sizeof(PoseMessage));
+    send(this->sock, &this->pose_to_udp_message(pose_message), sizeof(PoseMessage), 0);
 }
 
 
@@ -65,4 +66,32 @@ UDPSender::~UDPSender() {
     };
 
     std::cout << "udp sender socket successfully closed" << std::endl;
+}
+
+
+UDPSender::UdpPoseMessage UDPSender::pose_to_udp_message(const PoseMessage pose_message) {
+    UDPSender::UdpPose drone_udp_pose {
+        .x = pose_message.drone.x * UDPSender::decimal_offset,
+        .y = pose_message.drone.y * UDPSender::decimal_offset,
+        .z = pose_message.drone.z * UDPSender::decimal_offset,
+        .w = pose_message.drone.w * UDPSender::decimal_offset,
+        .xi = pose_message.drone.xi * UDPSender::decimal_offset,
+        .yj = pose_message.drone.yj * UDPSender::decimal_offset,
+        .zk = pose_message.drone.zk * UDPSender::decimal_offset
+    };
+    UDPSender::UdpPose camera_udp_pose {
+        .x = pose_message.camera.x * UDPSender::decimal_offset,
+        .y = pose_message.camera.y * UDPSender::decimal_offset,
+        .z = pose_message.camera.z * UDPSender::decimal_offset,
+        .w = pose_message.camera.w * UDPSender::decimal_offset,
+        .xi = pose_message.camera.xi * UDPSender::decimal_offset,
+        .yj = pose_message.camera.yj * UDPSender::decimal_offset,
+        .zk = pose_message.camera.zk * UDPSender::decimal_offset
+    };
+
+    return UDPSender::UdpPoseMessage {
+        .message_counter = pose_message.message_counter,
+        .drone = drone_udp_pose,
+        .camera = camera_udp_pose
+    };
 }
