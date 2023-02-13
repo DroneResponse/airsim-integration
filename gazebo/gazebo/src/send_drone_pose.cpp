@@ -24,8 +24,10 @@
 #include <gazebo/gazebo_client.hh>
 
 #include <chrono>
-
 #include <iostream>
+
+#include "../../src/pose.hpp"
+#include "../../src/udp_sender.hpp"
 
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;

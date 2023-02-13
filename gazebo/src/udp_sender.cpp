@@ -54,9 +54,9 @@ UDPSender::UDPSender(std::string host, unsigned short dest_port) {
 }
 
 
-void UDPSender::send_pose_message(const PoseMessage pose_message) {
+void UDPSender::send_pose_message(const PoseTransfer::PoseMessage pose_message) {
     // send pose message to airsim
-    send(this->sock, &this->pose_to_udp_message(pose_message), sizeof(PoseMessage), 0);
+    send(this->sock, &this->pose_to_udp_message(pose_message), sizeof(PoseTransfer::PoseMessage), 0);
 }
 
 
@@ -69,7 +69,8 @@ UDPSender::~UDPSender() {
 }
 
 
-UDPSender::UdpPoseMessage UDPSender::pose_to_udp_message(const PoseMessage pose_message) {
+UDPSender::UdpPoseMessage UDPSender::pose_to_udp_message(
+    const PoseTransfer::PoseMessage pose_message) {
     UDPSender::UdpPose drone_udp_pose {
         .x = htonll(pose_message.drone.x * UDPSender::decimal_offset),
         .y = htonll(pose_message.drone.y * UDPSender::decimal_offset),

@@ -12,7 +12,7 @@
 class UDPSender {       // The class
     public:             // Access specifier
         UDPSender(std::string host, unsigned short int dest_port);  // Constructor
-        void send_pose_message(const PoseMessage pose_message);  // Method/function declaration
+        void send_pose_message(const PoseTransfer::PoseMessage pose_message);  // Method/function declaration
     private:
         static const unsigned long decimal_offset = 1e5; // used to convert doubles to uint64_t
         unsigned short int dest_port;
@@ -34,7 +34,7 @@ class UDPSender {       // The class
             UdpPose camera;
         } UdpPoseMessage;
         #pragma pack(pop)
-        UdpPoseMessage pose_to_udp_message(PoseMessage);
+        UdpPoseMessage pose_to_udp_message(PoseTransfer::PoseMessage);
 };
 
 #endif
