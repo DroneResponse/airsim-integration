@@ -69,28 +69,28 @@ UDPSender::~UDPSender() {
 }
 
 
-UDPSender::UdpPoseMessage UDPSender::pose_to_udp_message(
+PoseTransfer::UdpPoseMessage UDPSender::pose_to_udp_message(
     const PoseTransfer::PoseMessage pose_message) {
-    UDPSender::UdpPose drone_udp_pose {
-        .x = htonll(pose_message.drone.x * UDPSender::decimal_offset),
-        .y = htonll(pose_message.drone.y * UDPSender::decimal_offset),
-        .z = htonll(pose_message.drone.z * UDPSender::decimal_offset),
-        .w = htonll(pose_message.drone.w * UDPSender::decimal_offset),
-        .xi = htonll(pose_message.drone.xi * UDPSender::decimal_offset),
-        .yj = htonll(pose_message.drone.yj * UDPSender::decimal_offset),
-        .zk = htonll(pose_message.drone.zk * UDPSender::decimal_offset)
+    PoseTransfer::UdpPose drone_udp_pose {
+        .x = htonll(pose_message.drone.x * PoseTransfer::decimal_offset),
+        .y = htonll(pose_message.drone.y * PoseTransfer::decimal_offset),
+        .z = htonll(pose_message.drone.z * PoseTransfer::decimal_offset),
+        .w = htonll(pose_message.drone.w * PoseTransfer::decimal_offset),
+        .xi = htonll(pose_message.drone.xi * PoseTransfer::decimal_offset),
+        .yj = htonll(pose_message.drone.yj * PoseTransfer::decimal_offset),
+        .zk = htonll(pose_message.drone.zk * PoseTransfer::decimal_offset)
     };
-    UDPSender::UdpPose camera_udp_pose {
-        .x = htonll(pose_message.camera.x * UDPSender::decimal_offset),
-        .y = htonll(pose_message.camera.y * UDPSender::decimal_offset),
-        .z = htonll(pose_message.camera.z * UDPSender::decimal_offset),
-        .w = htonll(pose_message.camera.w * UDPSender::decimal_offset),
-        .xi = htonll(pose_message.camera.xi * UDPSender::decimal_offset),
-        .yj = htonll(pose_message.camera.yj * UDPSender::decimal_offset),
-        .zk = htonll(pose_message.camera.zk * UDPSender::decimal_offset)
+    PoseTransfer::UdpPose camera_udp_pose {
+        .x = htonll(pose_message.camera.x * PoseTransfer::decimal_offset),
+        .y = htonll(pose_message.camera.y * PoseTransfer::decimal_offset),
+        .z = htonll(pose_message.camera.z * PoseTransfer::decimal_offset),
+        .w = htonll(pose_message.camera.w * PoseTransfer::decimal_offset),
+        .xi = htonll(pose_message.camera.xi * PoseTransfer::decimal_offset),
+        .yj = htonll(pose_message.camera.yj * PoseTransfer::decimal_offset),
+        .zk = htonll(pose_message.camera.zk * PoseTransfer::decimal_offset)
     };
 
-    return UDPSender::UdpPoseMessage {
+    return PoseTransfer::UdpPoseMessage {
         .message_counter = htonll(pose_message.message_counter),
         .drone = drone_udp_pose,
         .camera = camera_udp_pose
