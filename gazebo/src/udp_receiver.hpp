@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <mutex>
 #include <netdb.h>
 #include <iostream>
 #include <string>
@@ -18,7 +19,9 @@ class UDPReceiver {       // The class
          * should be started in it's own thread to constantly listen
          * @param pose_message pose message that should be updated with pose data by udp messages
         */
-        void listen_pose_message(PoseTransfer::PoseMessage &pose_message);  // Method/function declaration
+        void listen_pose_message(
+            PoseTransfer::PoseMessage &pose_message,
+            std::mutex mutex_pose_message);
     private:
         unsigned short int listener_port;
         int sock;
