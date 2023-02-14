@@ -26,8 +26,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "../../src/pose.hpp"
-#include "../../src/udp_sender.hpp"
+#include "pose.hpp"
+#include "udp_sender.hpp"
 
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
@@ -46,7 +46,7 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
-    static const UDPSender::UDPSender(airsim_host, airsim_port) udp_sender;
+    static UDPSender udp_sender (airsim_host, airsim_port);
 
     PoseTransfer::Pose drone_pose;
     PoseTransfer::Pose camera_pose;
@@ -96,7 +96,7 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
 
     if (drone_pose.x != 0 && camera_pose.x != 0) {
         PoseTransfer::PoseMessage pose_message {
-            .message_counter = count,
+            .message_counter = (uint64_t) count,
             .drone = drone_pose,
             .camera = camera_pose
         };
@@ -141,15 +141,6 @@ void cbGlobalPose(ConstPosesStampedPtr& msg)
     std::cout << std::endl;
 }
 
-
-send_pose_message(const PoseMessage& pose_message, socket_t& socket)
-{
-    // send pose message to airsim
-    zmq::message_t message(sizeof(PoseMessage));
-    memcpy(message.data(), &pose_message, sizeof(PoseMessage));
-    socket.send(message);
-
-}
 
 int main(int argc, char** argv)
 {
