@@ -3,5 +3,5 @@
 !*.*
 *.o
 .vscode
-*/build
+**/build
 UnrealEngine
