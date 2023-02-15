@@ -13,15 +13,17 @@
 class UDPReceiver {       // The class
     public:             // Access specifier
         UDPReceiver(unsigned short int listener_port);  // Constructor
+        ~UDPReceiver();
         /**
          * listens for udp messages on specified receiver port
          * 
          * should be started in it's own thread to constantly listen
          * @param pose_message pose message that should be updated with pose data by udp messages
+         * @param mutex_pose_message outside mutex reference to lock when updating pose_message
         */
         void listen_pose_message(
             PoseTransfer::PoseMessage &pose_message,
-            std::mutex mutex_pose_message);
+            std::mutex &mutex_pose_message);
     private:
         unsigned short int listener_port;
         int sock;
@@ -32,7 +34,7 @@ class UDPReceiver {       // The class
         */
         void udp_message_to_pose(
             PoseTransfer::UdpPoseMessage udp_pose_message,
-            PoseTransfer::PoseMessage &pose_message
+            PoseTransfer::PoseMessage *pose_message
         );
         double udp_uint64_to_double(uint64_t u_field);
 };
