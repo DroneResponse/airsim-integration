@@ -2,8 +2,20 @@
 #include <sstream>
 #include <thread>
 
+// airsim dependencies
+#include "common/common_utils/StrictMode.hpp"
+STRICT_MODE_OFF
+#ifndef RPCLIB_MSGPACK
+#define RPCLIB_MSGPACK clmdep_msgpack
+#endif // !RPCLIB_MSGPACK
+#include "rpc/rpc_error.h"
+STRICT_MODE_ON
+#include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
+#include "Eigen/Dense"
+
 #include "pose.hpp"
 #include "udp_receiver.hpp"
+
 
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     while (1) {
