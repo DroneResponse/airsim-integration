@@ -98,21 +98,25 @@ void set_drone_pose(
     std::mutex &mutex_pose_message
 ) {
     // TODO - use message counter to discard out of order pose
+    uint64_t msg_count = 0;
     while(1) {
         mutex_pose_message.lock();
-        msr::airlib::Vector3r drone_position(
-            (float) pose_message.drone.x,
-            (float) -pose_message.drone.y,
-            (float) -pose_message.drone.z
-        );
-        msr::airlib::Quaternionr drone_orientation(
-            (float) pose_message.drone.w,
-            (float) pose_message.drone.xi,
-            (float) -pose_message.drone.yj,
-            (float) -pose_message.drone.zk
-        );
-
-        airsim_client.simSetVehiclePose(msr::airlib::Pose(drone_position, drone_orientation), true);
+        if (pose_message.message_counter > msg_count) {
+            msr::airlib::Vector3r drone_position(
+                (float) pose_message.drone.x,
+                (float) -pose_message.drone.y,
+                (float) -pose_message.drone.z
+            );
+            msr::airlib::Quaternionr drone_orientation(
+                (float) pose_message.drone.w,
+                (float) pose_message.drone.xi,
+                (float) -pose_message.drone.yj,
+                (float) -pose_message.drone.zk
+            );
+            
+            airsim_client.simSetVehiclePose(msr::airlib::Pose(drone_position, drone_orientation), true);
+        }
+        msg_count = pose_message.message_counter;
         mutex_pose_message.unlock();
         // update at ~200hz
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
