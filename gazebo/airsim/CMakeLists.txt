@@ -37,4 +37,5 @@ add_executable(${PROJECT_NAME} src/receive_drone_pose.cpp ${UdpSourceFiles})
 target_link_libraries(
     ${PROJECT_NAME}
     rpc
+    AirLib
 )
