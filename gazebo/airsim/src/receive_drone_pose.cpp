@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     std::thread thread_receiver(
         &UDPReceiver::listen_pose_message,
         &udp_receiver,
-        std::ref(pose_message),
+        &pose_message,
         std::ref(mutex_pose_message)
     );
     std::thread thread_print_pose(print_pose, pose_message, std::ref(mutex_pose_message));

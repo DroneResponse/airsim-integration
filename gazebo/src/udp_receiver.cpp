@@ -64,7 +64,7 @@ UDPReceiver::~UDPReceiver() {
 
 
 void UDPReceiver::listen_pose_message(
-    PoseTransfer::PoseMessage &pose_message,
+    PoseTransfer::PoseMessage *pose_message,
     std::mutex &mutex_pose_message) {
     PoseTransfer::UdpPoseMessage udp_pose_message;
     while(1) {
@@ -72,8 +72,7 @@ void UDPReceiver::listen_pose_message(
             std::cout << "listen_pose_message - received empty message";
         }
         mutex_pose_message.lock();
-        PoseTransfer::PoseMessage *p_pose_message = &pose_message;
-        this->udp_message_to_pose(udp_pose_message, p_pose_message);
+        this->udp_message_to_pose(udp_pose_message, pose_message);
         mutex_pose_message.unlock();
     }
 }
@@ -101,7 +100,8 @@ void UDPReceiver::udp_message_to_pose(
         .zk = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.zk))
     };
 
-    std::cout << ntohll(udp_pose_message.drone.x) << std::endl;
+    // std::cout << ntohll(udp_pose_message.drone.x) << std::endl;
+    // std::cout << drone_pose.x << std::endl;
     
     pose_message->message_counter = ntohll(udp_pose_message.message_counter);
     pose_message->drone = drone_pose;

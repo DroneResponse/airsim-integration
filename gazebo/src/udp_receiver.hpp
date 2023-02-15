@@ -22,7 +22,7 @@ class UDPReceiver {       // The class
          * @param mutex_pose_message outside mutex reference to lock when updating pose_message
         */
         void listen_pose_message(
-            PoseTransfer::PoseMessage &pose_message,
+            PoseTransfer::PoseMessage *pose_message,
             std::mutex &mutex_pose_message);
     private:
         unsigned short int listener_port;
