@@ -91,37 +91,6 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
     ++count;
 }
 
-/**
- * global pose callback that simply prints global poses
- * @param msg gazebo message
-*/
-void cbGlobalPose(ConstPosesStampedPtr& msg)
-{
-    std::cout << std::fixed;
-    std::cout << std::setprecision(4);
-    static int count = 0;
-    if (count % MESSAGE_THROTTLE) {
-        ++count;
-        return;
-    }
-    ++count;
-
-    for (int i = 0; i < msg->pose_size(); i++) {
-        std::cout << "global (" << i << ") ";
-        std::cout << std::left << std::setw(32) << msg->pose(i).name();
-        std::cout << " x: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).position().x();
-        std::cout << " y: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).position().y();
-        std::cout << " z: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).position().z();
-
-        std::cout << " ow: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).orientation().w();
-        std::cout << " ox: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).orientation().x();
-        std::cout << " oy: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).orientation().y();
-        std::cout << " oz: " << std::right << std::setfill(' ') << std::setw(NWIDTH) << msg->pose(i).orientation().z();
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-
 
 int main(int argc, char** argv)
 {
@@ -160,8 +129,6 @@ int main(int argc, char** argv)
     // Listen to Gazebo topics
     // update freq ~250 hz
     gazebo::transport::SubscriberPtr sub_pose1 = node->Subscribe("~/pose/local/info", cbLocalPose);
-    // update freq ~50 hz
-    gazebo::transport::SubscriberPtr sub_pose2 = node->Subscribe("~/pose/info", cbGlobalPose);
 
     while (true)
         gazebo::common::Time::MSleep(10);
