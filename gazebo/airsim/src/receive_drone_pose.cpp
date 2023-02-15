@@ -17,6 +17,11 @@ STRICT_MODE_ON
 #include "udp_receiver.hpp"
 
 
+/**
+ * prints pose messages every 500 ms
+ * @param pose_message reference to a pose message
+ * @param mutex_pose_message mutex to lock access to provided pose message when reading
+*/
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     while (1) {
         mutex_pose_message.lock();
@@ -35,7 +40,7 @@ void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_
  * @param droneOrienation drone global quaternion where x = roll, y = pitch, z = yaw
  * @return camera global quaternion where x = roll, y = pitch, z = yaw
  */
-static msr::airlib::Quaternionr camDroneToGlobal(
+static msr::airlib::Quaternionr cam_drone_to_global(
     msr::airlib::Quaternionr camDroneOrientation,
     msr::airlib::Quaternionr droneOrientation
 ) {
@@ -57,7 +62,7 @@ static msr::airlib::Quaternionr camDroneToGlobal(
  * @param orientation quaternion where x = roll, y = pitch, z = yaw
  * @return quaternion where x = roll, y = pitch, z = yaw
  */
-static msr::airlib::Quaternionr removeRoll(msr::airlib::Quaternionr orientation) {
+static msr::airlib::Quaternionr remove_roll(msr::airlib::Quaternionr orientation) {
     float pitch = msr::airlib::VectorMath::getPitch(orientation);
     float yaw = msr::airlib::VectorMath::getYaw(orientation);
 
@@ -78,6 +83,38 @@ static msr::airlib::Quaternionr removeRoll(msr::airlib::Quaternionr orientation)
 }
 
 
+/**
+ * sets drone pose in airsim to gazebo drone pose
+ * @param airsim_client reference to airsim client
+ * @param pose_message reference to a pose message
+ * @param mutex_pose_message mutex to lock access to provided pose message when reading
+*/
+void set_drone_pose(
+    msr::airlib::MultirotorRpcLibClient &airsim_client,
+    PoseTransfer::PoseMessage &pose_message,
+    std::mutex &mutex_pose_message
+) {
+    while(1) {
+        mutex_pose_message.lock();
+        msr::airlib::Vector3r drone_position(
+            (float) pose_message.drone.x,
+            (float) -pose_message.drone.y,
+            (float) -pose_message.drone.z
+        );
+        msr::airlib::Quaternionr drone_orientation(
+            (float) pose_message.drone.w,
+            (float) pose_message.drone.xi,
+            (float) -pose_message.drone.yj,
+            (float) -pose_message.drone.zk
+        );
+
+        airsim_client.simSetVehiclePose(msr::airlib::Pose(drone_position, drone_orientation), true);
+        mutex_pose_message.unlock();
+        // update at ~200hz
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+}
+
 
 int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
@@ -95,6 +132,9 @@ int main(int argc, char** argv) {
 
     std::cout << "Listening for pose messages on port " << listener_port << std::endl;
 
+    msr::airlib::MultirotorRpcLibClient airsim_client;
+    airsim_client.confirmConnection();
+
     UDPReceiver udp_receiver(listener_port);
     PoseTransfer::PoseMessage pose_message;
     memset(&pose_message, 0, sizeof(pose_message));
@@ -109,7 +149,14 @@ int main(int argc, char** argv) {
         std::ref(mutex_pose_message)
     );
     std::thread thread_print_pose(print_pose, std::ref(pose_message), std::ref(mutex_pose_message));
+    std::thread thread_set_airsim_pose(
+        set_drone_pose,
+        std::ref(airsim_client),
+        std::ref(pose_message),
+        std::ref(mutex_pose_message)
+    );
 
     thread_receiver.join();
     thread_print_pose.join();
+    thread_set_airsim_pose.join();
 }
