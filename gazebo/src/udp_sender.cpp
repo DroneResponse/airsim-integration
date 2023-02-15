@@ -100,5 +100,5 @@ PoseTransfer::UdpPoseMessage UDPSender::pose_to_udp_message(
 
 
 uint64_t UDPSender::double_to_udp_uint64(double d_field) {
-    return (uint64_t) d_field * PoseTransfer::udp_decimal_offset;
+    return (uint64_t) (d_field * PoseTransfer::udp_decimal_offset);
 }
