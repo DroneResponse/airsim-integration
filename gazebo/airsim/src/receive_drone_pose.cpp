@@ -4,7 +4,7 @@
 #include "pose.hpp"
 #include "udp_receiver.hpp"
 
-void print_pose(PoseTransfer::PoseMessage pose_message, std::mutex &mutex_pose_message) {
+void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     while (1) {
         mutex_pose_message.lock();
         (std::cout << "drone position: " << pose_message.drone.x << ", " << pose_message.drone.y << ", "
@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
         &pose_message,
         std::ref(mutex_pose_message)
     );
-    std::thread thread_print_pose(print_pose, pose_message, std::ref(mutex_pose_message));
+    std::thread thread_print_pose(print_pose, std::ref(pose_message), std::ref(mutex_pose_message));
 
     thread_receiver.join();
     thread_print_pose.join();

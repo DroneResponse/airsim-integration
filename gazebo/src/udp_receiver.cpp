@@ -99,9 +99,6 @@ void UDPReceiver::udp_message_to_pose(
         .yj = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.yj)),
         .zk = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.zk))
     };
-
-    // std::cout << ntohll(udp_pose_message.drone.x) << std::endl;
-    // std::cout << drone_pose.x << std::endl;
     
     pose_message->message_counter = ntohll(udp_pose_message.message_counter);
     pose_message->drone = drone_pose;
