@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <sstream>
 
 #include "pose.hpp"
 #include "udp_sender.hpp"
@@ -13,8 +14,8 @@ constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
 // TODO - use function generator to set host and port in gazebo callbacks instead of globals here
-std::string airsim_host = "127.0.0.1";
-unsigned short airsim_port = 50000;
+std::string AIRSIM_HOST = "127.0.0.1";
+unsigned short AIRSIM_PORT = 50000;
 
 /**
  * local pose callback where gazebo drone represents airsim drone's global pose
@@ -26,7 +27,7 @@ void cbLocalPose(ConstPosesStampedPtr& msg)
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
-    static UDPSender udp_sender (airsim_host, airsim_port);
+    static UDPSender udp_sender (AIRSIM_HOST, AIRSIM_PORT);
 
     PoseTransfer::Pose drone_pose;
     PoseTransfer::Pose camera_pose;
@@ -124,10 +125,30 @@ void cbGlobalPose(ConstPosesStampedPtr& msg)
 
 int main(int argc, char** argv)
 {
-    std::string air_sim_host = "127.0.0.1";
-    int air_sim_port = 41451;
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-p") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> AIRSIM_PORT)) {
+                std::cerr << "Invalid port: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
+            }
+        }
+        if (strcmp(argv[i], "-a") == 0) {
+            std::string ss = argv[i + 1];
+            if (strcmp(&ss.back(), " ") == 0) {
+                std::cerr << "Trailing spaces after address: " << ss << '\n';
+            } else if (!(std::count(ss.begin(), ss.end(), '.') == 3)) {
+                std::cerr << "Invalid address format: " << ss << '\n';
+            } else {
+                AIRSIM_HOST = ss;
+            }
+        }
+    }
+
     // print out the version of gazebo
     std::cout << "Gazebo version: " << GAZEBO_MAJOR_VERSION << "." << GAZEBO_MINOR_VERSION << std::endl;
+    std::cout << "Sending pose messages to " << AIRSIM_HOST << " on port " << AIRSIM_PORT << std::endl;
 
     // Load gazebo
     gazebo::client::setup(argc, argv);

@@ -1,5 +1,6 @@
-#include <thread>
 #include <mutex>
+#include <sstream>
+#include <thread>
 
 #include "pose.hpp"
 #include "udp_receiver.hpp"
@@ -17,8 +18,20 @@ void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_
 
 
 int main(int argc, char** argv) {
-    // TODO - accept a -p input for port specification
     unsigned short int listener_port = 50000;
+
+    for (int i=0; i < argc; i++) {
+        if (strcmp(argv[i], "-p") == 0) {
+            std::istringstream ss(argv[i + 1]);
+            if (!(ss >> listener_port)) {
+                std::cerr << "Invalid port: " << argv[i + 1] << '\n';
+            } else if (!ss.eof()) {
+                std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
+            }
+        }
+    }
+
+    std::cout << "Listening for pose messages on port " << listener_port << std::endl;
 
     UDPReceiver udp_receiver(listener_port);
     PoseTransfer::PoseMessage pose_message;
