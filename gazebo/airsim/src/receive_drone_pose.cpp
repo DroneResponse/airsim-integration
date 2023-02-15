@@ -29,6 +29,56 @@ void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_
 }
 
 
+/**
+ * converts gimbal mounted camera local orientation to a global orientation. 
+ * @param camDroneOrientation camera local quaternion where x = roll, y = pitch, z = yaw
+ * @param droneOrienation drone global quaternion where x = roll, y = pitch, z = yaw
+ * @return camera global quaternion where x = roll, y = pitch, z = yaw
+ */
+static msr::airlib::Quaternionr camDroneToGlobal(
+    msr::airlib::Quaternionr camDroneOrientation,
+    msr::airlib::Quaternionr droneOrientation
+) {
+    // need to remove pitch and roll from drone orientation since camera pitch and roll
+    // are already in the global frame
+    float drone_yaw = msr::airlib::VectorMath::getYaw(droneOrientation);
+    msr::airlib::Quaternionr drone_orientation_yaw_only(
+        std::cos(drone_yaw / 2.0),
+        0,
+        0,
+        std::sin(drone_yaw / 2.0));
+
+    return drone_orientation_yaw_only * camDroneOrientation;
+}
+
+
+/**
+ * removes roll (y) from the provided quaternion.
+ * @param orientation quaternion where x = roll, y = pitch, z = yaw
+ * @return quaternion where x = roll, y = pitch, z = yaw
+ */
+static msr::airlib::Quaternionr removeRoll(msr::airlib::Quaternionr orientation) {
+    float pitch = msr::airlib::VectorMath::getPitch(orientation);
+    float yaw = msr::airlib::VectorMath::getYaw(orientation);
+
+    msr::airlib::Quaternionr orientation_pitch_only(
+        std::cos(pitch / 2.0),
+        0,
+        std::sin(pitch / 2.0),
+        0);
+
+    msr::airlib::Quaternionr orientation_yaw_only(
+        std::cos(yaw / 2.0),
+        0,
+        0,
+        std::sin(yaw / 2.0));
+
+    // follow assumed previous orientation assembly with roll -> pitch -> yaw
+    return orientation_yaw_only * orientation_pitch_only;
+}
+
+
+
 int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
 
