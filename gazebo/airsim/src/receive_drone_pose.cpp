@@ -94,6 +94,7 @@ void set_drone_pose(
     PoseTransfer::PoseMessage &pose_message,
     std::mutex &mutex_pose_message
 ) {
+    // TODO - use message counter to discard out of order pose
     while(1) {
         mutex_pose_message.lock();
         msr::airlib::Vector3r drone_position(
