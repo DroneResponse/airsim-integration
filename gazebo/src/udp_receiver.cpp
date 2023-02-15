@@ -82,22 +82,22 @@ void UDPReceiver::udp_message_to_pose(
     PoseTransfer::UdpPoseMessage udp_pose_message,
     PoseTransfer::PoseMessage *pose_message) {
     PoseTransfer::Pose drone_pose {
-        .x = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.x)),
-        .y = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.y)),
-        .z = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.z)),
-        .w = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.w)),
-        .xi = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.xi)),
-        .yj = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.yj)),
-        .zk = this->udp_uint64_to_double(ntohll(udp_pose_message.drone.zk))
+        .x = this->udp_int64_to_double(ntohll(udp_pose_message.drone.x)),
+        .y = this->udp_int64_to_double(ntohll(udp_pose_message.drone.y)),
+        .z = this->udp_int64_to_double(ntohll(udp_pose_message.drone.z)),
+        .w = this->udp_int64_to_double(ntohll(udp_pose_message.drone.w)),
+        .xi = this->udp_int64_to_double(ntohll(udp_pose_message.drone.xi)),
+        .yj = this->udp_int64_to_double(ntohll(udp_pose_message.drone.yj)),
+        .zk = this->udp_int64_to_double(ntohll(udp_pose_message.drone.zk))
     };
     PoseTransfer::Pose camera_pose {
-        .x = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.x)),
-        .y = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.y)),
-        .z = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.z)),
-        .w = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.w)),
-        .xi = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.xi)),
-        .yj = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.yj)),
-        .zk = this->udp_uint64_to_double(ntohll(udp_pose_message.camera.zk))
+        .x = this->udp_int64_to_double(ntohll(udp_pose_message.camera.x)),
+        .y = this->udp_int64_to_double(ntohll(udp_pose_message.camera.y)),
+        .z = this->udp_int64_to_double(ntohll(udp_pose_message.camera.z)),
+        .w = this->udp_int64_to_double(ntohll(udp_pose_message.camera.w)),
+        .xi = this->udp_int64_to_double(ntohll(udp_pose_message.camera.xi)),
+        .yj = this->udp_int64_to_double(ntohll(udp_pose_message.camera.yj)),
+        .zk = this->udp_int64_to_double(ntohll(udp_pose_message.camera.zk))
     };
     
     pose_message->message_counter = ntohll(udp_pose_message.message_counter);
@@ -106,6 +106,6 @@ void UDPReceiver::udp_message_to_pose(
 }
 
 
-double UDPReceiver::udp_uint64_to_double(uint64_t u_field) {
+double UDPReceiver::udp_int64_to_double(int64_t u_field) {
     return (double) u_field / PoseTransfer::udp_decimal_offset;
 }

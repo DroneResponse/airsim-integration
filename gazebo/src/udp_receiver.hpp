@@ -36,7 +36,7 @@ class UDPReceiver {       // The class
             PoseTransfer::UdpPoseMessage udp_pose_message,
             PoseTransfer::PoseMessage *pose_message
         );
-        double udp_uint64_to_double(uint64_t u_field);
+        double udp_int64_to_double(int64_t u_field);
 };
 
 #endif
