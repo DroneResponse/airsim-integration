@@ -40,7 +40,7 @@ void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_
 /**
  * converts gimbal mounted camera local orientation to a global orientation. 
  * @param camDroneOrientation camera local quaternion where x = roll, y = pitch, z = yaw
- * @param droneOrienation drone global quaternion where x = roll, y = pitch, z = yaw
+ * @param droneOrientation drone global quaternion where x = roll, y = pitch, z = yaw
  * @return camera global quaternion where x = roll, y = pitch, z = yaw
  */
 static msr::airlib::Quaternionr cam_drone_to_global(
@@ -97,7 +97,6 @@ void set_drone_pose(
     PoseTransfer::PoseMessage &pose_message,
     std::mutex &mutex_pose_message
 ) {
-    // TODO - use message counter to discard out of order pose
     uint64_t msg_count = 0;
     while(1) {
         mutex_pose_message.lock();
@@ -114,7 +113,61 @@ void set_drone_pose(
                 (float) -pose_message.drone.zk
             );
             
-            airsim_client.simSetVehiclePose(msr::airlib::Pose(drone_position, drone_orientation), true);
+            airsim_client.simSetVehiclePose(
+                msr::airlib::Pose(drone_position, drone_orientation),
+                true
+            );
+        }
+        msg_count = pose_message.message_counter;
+        mutex_pose_message.unlock();
+        // update at ~200hz
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+}
+
+
+/**
+ * sets drone pose in airsim to gazebo gimbal camera pose
+ * @param airsim_client reference to airsim client
+ * @param pose_message reference to a pose message
+ * @param mutex_pose_message mutex to lock access to provided pose message when reading
+*/
+void set_drone_pose_as_camera_pose(
+    msr::airlib::MultirotorRpcLibClient &airsim_client,
+    PoseTransfer::PoseMessage &pose_message,
+    std::mutex &mutex_pose_message
+) {
+    uint64_t msg_count = 0;
+    while(1) {
+        mutex_pose_message.lock();
+        if (pose_message.message_counter > msg_count) {
+            msr::airlib::Vector3r drone_position(
+                (float) pose_message.drone.x,
+                (float) -pose_message.drone.y,
+                (float) -pose_message.drone.z
+            );
+            msr::airlib::Quaternionr drone_orientation(
+                (float) pose_message.drone.w,
+                (float) pose_message.drone.xi,
+                (float) -pose_message.drone.yj,
+                (float) -pose_message.drone.zk
+            );
+            msr::airlib::Quaternionr camera_drone_orientation(
+                (float) pose_message.camera.w,
+                (float) pose_message.camera.xi,
+                (float) -pose_message.camera.yj,
+                (float) -pose_message.camera.zk
+            );
+            
+            msr::airlib::Quaternionr camera_global_orientation = cam_drone_to_global(
+                camera_drone_orientation,
+                drone_orientation
+            );
+
+            airsim_client.simSetVehiclePose(
+                msr::airlib::Pose(drone_position, camera_global_orientation),
+                true
+            );
         }
         msg_count = pose_message.message_counter;
         mutex_pose_message.unlock();
