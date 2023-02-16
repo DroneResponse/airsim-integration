@@ -25,11 +25,15 @@ STRICT_MODE_ON
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     while (1) {
         mutex_pose_message.lock();
-        (std::cout << "drone position: " << pose_message.drone.x << ", " << pose_message.drone.y
+        (std::cout << "drone position received: " << pose_message.drone.x << ", " << pose_message.drone.y
         << ", " << pose_message.drone.z << std::endl);
-        (std::cout << "drone orientation: " << pose_message.drone.w << ", "
+        (std::cout << "drone orientation received: " << pose_message.drone.w << ", "
         << pose_message.drone.xi << ", " << pose_message.drone.yj << ", "
         << pose_message.drone.zk << std::endl);
+        mutex_pose_message.unlock();
+        (std::cout << "camera orientation received: " << pose_message.camera.w << ", "
+        << pose_message.camera.xi << ", " << pose_message.camera.yj << ", "
+        << pose_message.camera.zk << "\n" << std::endl);
         mutex_pose_message.unlock();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -217,6 +221,16 @@ int main(int argc, char** argv) {
         if (strcmp(argv[i], "-r") == 0) {
             roll_override = true;
         }
+    }
+
+    if (drone_pose_setter == &set_drone_pose_as_camera_pose) {
+        std::cout << "Drone pose will be set to global gimbal camera pose\n";
+    } else {
+        std::cout << "Drone pose will be set to global drone pose\n";
+    }
+
+    if (roll_override) {
+        std::cout << "Camera roll will be artifically removed\n";
     }
 
     std::cout << "Listening for pose messages on port " << listener_port << std::endl;
