@@ -12,11 +12,14 @@
 class UDPSender {       // The class
     public:             // Access specifier
         UDPSender(std::string host, unsigned short int dest_port);  // Constructor
-        void send_pose_message(const PoseMessage& pose_message);  // Method/function declaration
+        ~UDPSender();
+        void send_pose_message(const PoseTransfer::PoseMessage pose_message);  // Method/function declaration
     private:
         unsigned short int dest_port;
         std::string host;  // Attribute (string variable)
         int sock;
+        PoseTransfer::UdpPoseMessage pose_to_udp_message(PoseTransfer::PoseMessage);
+        int64_t double_to_udp_int64(double d_field);
 };
 
 #endif

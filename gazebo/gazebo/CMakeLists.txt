@@ -1,15 +1,23 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(DronePose)
+project(send_drone_pose)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
+set(UdpSourceDir
+    ../src
+)
+set(UdpSourceFiles
+    ${UdpSourceDir}/udp_sender.cpp
+)
+
 find_package(gazebo REQUIRED)
 
 include_directories(
     ${GAZEBO_INCLUDE_DIRS}
+    ${UdpSourceDir}
 )
 
 link_directories(
@@ -18,10 +26,10 @@ link_directories(
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
-add_executable(${PROJECT_NAME} src/drone_pose.cpp src/udp_sender.cpp)
+add_executable(${PROJECT_NAME} src/send_drone_pose.cpp ${UdpSourceFiles})
 
 target_link_libraries(
-    ${PROJECT_NAME} 
+    ${PROJECT_NAME}
     ${GAZEBO_LIBRARIES}
     pthread
 )
