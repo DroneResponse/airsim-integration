@@ -10,10 +10,10 @@ This repository includes gstreamer pipelines to stream video frames from Unreal 
 Note: when building on Mac via package configs, [gstreamer recommends](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig) the following environment variable updates are made:
 ```bash
 # Tell pkg-config where to find the .pc files
-$ export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
 
 # We will use the pkg-config provided by the GStreamer.framework
-$ export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
+export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
 ```
 Depending on your installation, the paths may be different from above. For example, if installed with `brew` then the path may be `/opt/homebrew/Cellar/gstreamer/...` With `brew`, the gstreamer packages including various elements (base, good, bad, ugly) will be installed separately as well.
 

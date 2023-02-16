@@ -6,6 +6,7 @@ if (NOT DEFINED ENV{AIRSIM_ROOT})
     message(FATAL_ERROR "set the env variable AIRSIM_ROOT to the AirSim install directory")
 else()
     message(STATUS "AIRSIM_ROOT=" $ENV{AIRSIM_ROOT})
+    set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
 endif()
 
 
@@ -15,11 +16,18 @@ else()
     message(STATUS "PKG_CONFIG_PATH=" $ENV{PKG_CONFIG_PATH})
 endif()
 
-set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
-set(GSTREAMER_ROOT $ENV{GSTREAMER_ROOT})
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
+endif()
+
+
+if (NOT DEFINED ENV{GSTREAMER_ROOT})
+    message(STATUS "Using pkg-config to find gstreamer depenedencies")
+else()
+    message(STATUS "GSTREAMER_ROOT=" $ENV{GSTREAMER_ROOT})
+    message(STATUS "Using the provided GSTREAMER_ROOT env variable to find gstreamer dependencies")
+    set(GSTREAMER_ROOT $ENV{GSTREAMER_ROOT})
 endif()
 
 find_package(PkgConfig REQUIRED)
@@ -30,7 +38,21 @@ pkg_check_modules(GST REQUIRED gstreamer-1.0
                     gstreamer-base-1.0
                     gstreamer-app-1.0)
 
-# ideally use ${GST_INCLUDE_DIRS}, but not successfully finding /Headers
+# ideally use ${GST_INCLUDE_DIRS} in all cases,
+# but not successfully finding /Headers for mac framework install
+if (GSTREAMER_ROOT)
+include_directories(
+    ${AIRSIM_ROOT}/AirLib/deps/eigen3
+    ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
+    ${AIRSIM_ROOT}/AirLib/include
+    ${GSTREAMER_ROOT}/Headers
+)
+
+link_directories(
+    ${AIRSIM_ROOT}/build_release/output/lib
+    ${GSTREAMER_ROOT}/Libraries
+)
+else()
 include_directories(
     ${AIRSIM_ROOT}/AirLib/deps/eigen3
     ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
@@ -45,6 +67,7 @@ link_directories(
     /usr/lib/llvm-8/lib
 )
  message(STATUS "GST_LIBRARIES=" ${GST_LIBRARIES})
+endif()
 
 list(APPEND CMAKE_CXX_FLAGS)
 
