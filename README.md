@@ -53,7 +53,7 @@ g++ ./src/udp-cam-receive-jetson.cpp -o ./build/udp-cam-receive-jetson `pkg-conf
 Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications. 
 
 ```bash
-# starting from 'receive/mac'
+# starting from 'receive/linux'
 mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
