@@ -91,11 +91,13 @@ static msr::airlib::Quaternionr remove_roll(msr::airlib::Quaternionr orientation
  * @param airsim_client reference to airsim client
  * @param pose_message reference to a pose message
  * @param mutex_pose_message mutex to lock access to provided pose message when reading
+ * @param roll_override this does nothing, but is added for common template
 */
 void set_drone_pose(
     msr::airlib::MultirotorRpcLibClient &airsim_client,
     PoseTransfer::PoseMessage &pose_message,
-    std::mutex &mutex_pose_message
+    std::mutex &mutex_pose_message,
+    bool roll_override
 ) {
     uint64_t msg_count = 0;
     while(1) {
@@ -131,11 +133,13 @@ void set_drone_pose(
  * @param airsim_client reference to airsim client
  * @param pose_message reference to a pose message
  * @param mutex_pose_message mutex to lock access to provided pose message when reading
+ * @param roll_override overrides roll if set to true
 */
 void set_drone_pose_as_camera_pose(
     msr::airlib::MultirotorRpcLibClient &airsim_client,
     PoseTransfer::PoseMessage &pose_message,
-    std::mutex &mutex_pose_message
+    std::mutex &mutex_pose_message,
+    bool roll_override
 ) {
     uint64_t msg_count = 0;
     while(1) {
@@ -158,6 +162,17 @@ void set_drone_pose_as_camera_pose(
                 (float) -pose_message.camera.yj,
                 (float) -pose_message.camera.zk
             );
+
+            if (roll_override) {
+                msr::airlib::Quaternionr camera_drone_orientation = remove_roll(
+                    msr::airlib::Quaternionr(
+                        (float) pose_message.camera.w,
+                        (float) pose_message.camera.xi,
+                        (float) -pose_message.camera.yj,
+                        (float) -pose_message.camera.zk
+                    )
+                );
+            }
             
             msr::airlib::Quaternionr camera_global_orientation = cam_drone_to_global(
                 camera_drone_orientation,
@@ -179,6 +194,13 @@ void set_drone_pose_as_camera_pose(
 
 int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
+    bool roll_override = false;
+    void (*drone_pose_setter)(
+        msr::airlib::MultirotorRpcLibClient&,
+        PoseTransfer::PoseMessage&,
+        std::mutex&,
+        bool
+    ) = &set_drone_pose;
 
     for (int i=0; i < argc; i++) {
         if (strcmp(argv[i], "-p") == 0) {
@@ -188,6 +210,12 @@ int main(int argc, char** argv) {
             } else if (!ss.eof()) {
                 std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
             }
+        }
+        if (strcmp(argv[i], "-c") == 0) {
+            drone_pose_setter = &set_drone_pose_as_camera_pose;
+        }
+        if (strcmp(argv[i], "-r") == 0) {
+            roll_override = true;
         }
     }
 
@@ -211,10 +239,11 @@ int main(int argc, char** argv) {
     );
     std::thread thread_print_pose(print_pose, std::ref(pose_message), std::ref(mutex_pose_message));
     std::thread thread_set_airsim_pose(
-        set_drone_pose,
+        *drone_pose_setter,
         std::ref(airsim_client),
         std::ref(pose_message),
-        std::ref(mutex_pose_message)
+        std::ref(mutex_pose_message),
+        roll_override
     );
 
     thread_receiver.join();
