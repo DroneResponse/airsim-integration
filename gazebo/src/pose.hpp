@@ -41,7 +41,7 @@ namespace PoseTransfer {
     } UdpPoseMessage;
     #pragma pack(pop)
 
-    static const unsigned long udp_decimal_offset = 1e5; // used to convert doubles to uint64_t
+    static constexpr unsigned long udp_decimal_offset = 1e5; // used to convert doubles to uint64_t
 }
 
 
