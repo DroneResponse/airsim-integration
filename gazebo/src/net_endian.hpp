@@ -1,11 +1,5 @@
 #include <cstdint>
-// redefine htonll and ntohll to some other name before including the inet header
-#define htonll htonll_orig
-#define ntohll ntohll_orig
 #include <arpa/inet.h>
-// then undefine htonll and ntohll so can create our own definition below
-#undef htonll
-#undef ntohll
 #include <bit>
 
 namespace net_bits {
@@ -17,7 +11,7 @@ namespace net_bits {
         return hb + lb; // 11111111 22222222
     }
 
-    inline constexpr int64_t htonll(const int64_t value) {
+    inline constexpr int64_t hton64(const int64_t value) {
         // This is a "constexpr if statement" If native == little, then the compiler
         // will discarded the false branch otherwise the true branch is discarded.
         if constexpr (std::endian::native == std::endian::little) {
@@ -28,8 +22,8 @@ namespace net_bits {
         }
     }
 
-    inline constexpr int64_t ntohll(const int64_t value) {
-        return htonll(value);
+    inline constexpr int64_t ntoh64(const int64_t value) {
+        return hton64(value);
     }
 
     // todo: make this a template
@@ -40,7 +34,7 @@ namespace net_bits {
         return hb + lb; // 11111111 22222222
     }
 
-    inline constexpr uint64_t htonll(const uint64_t value) {
+    inline constexpr uint64_t hton64(const uint64_t value) {
         // This is a "constexpr if statement" If native == little, then the compiler
         // will discarded the false branch otherwise the true branch is discarded.
         if constexpr (std::endian::native == std::endian::little) {
@@ -51,8 +45,8 @@ namespace net_bits {
         }
     }
 
-    inline constexpr uint64_t ntohll(const uint64_t value) {
-        return htonll(value);
+    inline constexpr uint64_t ntoh64(const uint64_t value) {
+        return hton64(value);
     }
 
 }

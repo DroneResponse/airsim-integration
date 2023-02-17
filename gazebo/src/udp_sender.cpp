@@ -74,26 +74,26 @@ void UDPSender::send_pose_message(const PoseTransfer::PoseMessage pose_message) 
 PoseTransfer::UdpPoseMessage UDPSender::pose_to_udp_message(
     const PoseTransfer::PoseMessage pose_message) {
     PoseTransfer::UdpPose drone_udp_pose {
-        .x = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.x)),
-        .y = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.y)),
-        .z = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.z)),
-        .w = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.w)),
-        .xi = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.xi)),
-        .yj = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.yj)),
-        .zk = net_bits::htonll(this->double_to_udp_int64(pose_message.drone.zk))
+        .x = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.x)),
+        .y = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.y)),
+        .z = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.z)),
+        .w = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.w)),
+        .xi = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.xi)),
+        .yj = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.yj)),
+        .zk = net_bits::hton64(this->double_to_udp_int64(pose_message.drone.zk))
     };
     PoseTransfer::UdpPose camera_udp_pose {
-        .x = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.x)),
-        .y = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.y)),
-        .z = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.z)),
-        .w = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.w)),
-        .xi = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.xi)),
-        .yj = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.yj)),
-        .zk = net_bits::htonll(this->double_to_udp_int64(pose_message.camera.zk))
+        .x = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.x)),
+        .y = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.y)),
+        .z = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.z)),
+        .w = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.w)),
+        .xi = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.xi)),
+        .yj = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.yj)),
+        .zk = net_bits::hton64(this->double_to_udp_int64(pose_message.camera.zk))
     };
 
     return PoseTransfer::UdpPoseMessage {
-        .message_counter =  net_bits::htonll(pose_message.message_counter),
+        .message_counter =  net_bits::hton64(pose_message.message_counter),
         .drone = drone_udp_pose,
         .camera = camera_udp_pose
     };
