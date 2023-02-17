@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project(send_drone_pose)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
-endif()
+set (CMAKE_CXX_STANDARD 20)
 
 set(UdpSourceDir
     ../src
@@ -12,6 +10,7 @@ set(UdpSourceDir
 set(UdpSourceFiles
     ${UdpSourceDir}/udp_sender.cpp
 )
+
 
 find_package(gazebo REQUIRED)
 
