@@ -56,9 +56,7 @@ mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
 
-### Gazebo
-Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications.
-
+### Pose
 _Additional dependencies:_
 - cmake
 - [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
