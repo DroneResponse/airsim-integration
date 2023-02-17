@@ -1,5 +1,11 @@
 #include <cstdint>
+// redefine htonll and ntohll to some other name before including the inet header
+#define htonll htonll_orig
+#define ntohll ntohll_orig
 #include <arpa/inet.h>
+// then undefine htonll and ntohll so can create our own definition below
+#undef htonll
+#undef ntohll
 #include <bit>
 
 namespace net_bits {
