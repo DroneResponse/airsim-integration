@@ -1,5 +1,5 @@
 # Airsim-Integration
-This repository includes gstreamer pipelines to stream video frames from Unreal Engine based [AirSim's camera's](https://microsoft.github.io/AirSim/image_apis/) over UDP.
+Provides programs to stream drone and camera poses from Gazebo to AirSim over UDP. Also includes gstreamer programs to stream video frames from Unreal Engine based [AirSim camera's](https://microsoft.github.io/AirSim/image_apis/) over UDP. Includes UDP camera stream receivers built both for general linux based machines and Nvidia Jetsons specifically. 
 
 ## Dependencies
 - [Airsim](https://microsoft.github.io/AirSim/) ([+Unreal Engine](https://www.unrealengine.com/en-US/download))
