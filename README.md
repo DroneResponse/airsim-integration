@@ -61,7 +61,7 @@ _Additional dependencies:_
 - cmake
 - [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
     - for Arm Mac's, must be [compiled using rosetta in X86 terminal](https://docs.px4.io/main/en/dev_setup/dev_env_mac.html#macos-development-environment)
-    - the same X86 terminal will need to be used to compile gazebo DronePose in this repo
+    - the same X86 terminal will need to be used to compile gazebo send_drone_pose in this repo
 
 Set required environment variables:
 - AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
@@ -79,7 +79,7 @@ make
 ### Airsim send - sends airsim stream from front-center drone camera
 After compiling from the build dir:
 ```bash
-./AirSimCamSend -a <dest ip addr> -p <port> -f <desired frame rate>
+./airsim-cam-send -a <dest ip addr> -p <port> -f <desired frame rate>
 ```
 
 All inputs are optional and will default to 'localhost', 5000, and 15 fps respectively. 
