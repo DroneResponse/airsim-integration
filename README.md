@@ -104,20 +104,30 @@ Port input is optional and will default to 5000.
 
 Video window should open and display at the resolution and frame rate that the sender is streaming.
 
-### Gazebo
-- Gazebo and AirSim simulations need to be running for this program to translate gazebo poses to AirSim poses
-    - the gazebo simulation can be headless
+### Pose
+The gazebo pose sender and airsim pose receiver are two separate programs that communicate over UDP. This allows them to be run on separate machines or seperate containers. 
+
+- An Airsim simulation must be started before starting the pose receiver so that the receiver successfully connects to the simulation's API
 - If utilizing camera pose, make sure to use the gazebo `typhoon_h480` drone that includes a camera on a gimbal and publishes the camera pose
 
-After compiling from the build dir:
+After compiling from the gazebo build dir:
 ```bash
-./DronePose <optional -c>
+./send_drone_pose -p <port> -a <address>
 ```
 
-The `-c` flag indicates that the AirSim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the camera in line with the camera pose in gazebo.
+Port and address are optional and will default to `50000` and `127.0.0.1` respectively.
 
-The `-r` flag will artificially override and remove any gimbal camera roll.
+After compiling from the airsim build dir:
+```bash
+./receive_drone_pose -p <port> -c -r
+```
 
-No flag will set the drone pose to the gazebo drone's pose.
+Port is optional and will default to `50000`
+
+The optional `-c` flag indicates that the Airsim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the Airsim drone in line with the camera pose in gazebo. Doing so essentially treats the Airsim drone as the gimbal camera.
+
+The optional `-r` flag will artificially override and remove any gimbal camera roll.
+
+No flag will set the Airsim drone pose to the gazebo drone's pose.
 
 
