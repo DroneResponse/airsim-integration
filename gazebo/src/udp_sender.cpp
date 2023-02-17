@@ -1,6 +1,6 @@
 #include "udp_sender.hpp"
 #include "net_endian.hpp"
-
+#include <cstring>
 
 UDPSender::UDPSender(std::string host, unsigned short dest_port) {
     this->dest_port = dest_port;

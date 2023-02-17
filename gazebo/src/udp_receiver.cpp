@@ -1,5 +1,6 @@
 #include "udp_receiver.hpp"
 #include "net_endian.hpp"
+#include <cstring>
 
 UDPReceiver::UDPReceiver(unsigned short int listener_port) {
     this->listener_port = listener_port;
