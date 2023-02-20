@@ -10,9 +10,7 @@ endif()
 
 set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
-endif()
+set (CMAKE_CXX_STANDARD 20)
 
 set(UdpSourceDir
     ../src

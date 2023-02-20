@@ -25,13 +25,13 @@ namespace PoseTransfer {
 
     #pragma pack(push,1)
     typedef struct UdpPose {
-        uint64_t x;
-        uint64_t y;
-        uint64_t z;
-        uint64_t w;
-        uint64_t xi;
-        uint64_t yj;
-        uint64_t zk;
+        int64_t x;
+        int64_t y;
+        int64_t z;
+        int64_t w;
+        int64_t xi;
+        int64_t yj;
+        int64_t zk;
     } UdpPose;
 
     typedef struct UdpPoseMessage {
@@ -41,7 +41,7 @@ namespace PoseTransfer {
     } UdpPoseMessage;
     #pragma pack(pop)
 
-    static const unsigned long udp_decimal_offset = 1e5; // used to convert doubles to uint64_t
+    static constexpr unsigned long udp_decimal_offset = 1e5; // used to convert doubles to uint64_t
 }
 
 
