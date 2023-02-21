@@ -3,4 +3,6 @@
 !*.*
 *.o
 .vscode
-*/build
+**/build
+UnrealEngine
+**/tmp
