@@ -10,24 +10,26 @@ Provides programs to stream drone and camera poses from Gazebo to AirSim over UD
 Note: when building on Mac via package configs, [gstreamer recommends](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig) the following environment variable updates are made:
 ```bash
 # Tell pkg-config where to find the .pc files
-$ export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
 
 # We will use the pkg-config provided by the GStreamer.framework
-$ export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
+export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
 ```
 Depending on your installation, the paths may be different from above. For example, if installed with `brew` then the path may be `/opt/homebrew/Cellar/gstreamer/...` With `brew`, the gstreamer packages including various elements (base, good, bad, ugly) will be installed separately as well.
 
-You can alternately [compile directly](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation) with flags to headers, libraries and frameworks. 
+You can alternately [compile directly](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation) with flags to headers, libraries and frameworks.
+
+When building on Linux, you should be able to use a pre-existing installation of pkg-config and do not need to set the env variables above.
 
 ### Airsim send
-Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications. 
-
 _Additional dependencies:_
 - cmake
 
-Set required environment variables:
+Set required environment variable:
 - AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
-- GSTREAMER_ROOT - Gstreamer install directory (ie. `/Library/Frameworks/GStreamer.framework` - this will be different if installed via a package manager or in a linux OS other than Mac)
+
+If you are compiling on mac and gstreamer is installed as a /Library/Framework, you will want to set the following environment variable so the required headers are successfully found
+- GSTREAMER_ROOT - Gstreamer install directory (ie. `/Library/Frameworks/GStreamer.framework`)
 
 Create a build directory and run cmake / make:
 ```bash
@@ -51,7 +53,7 @@ g++ ./src/udp-cam-receive-jetson.cpp -o ./build/udp-cam-receive-jetson `pkg-conf
 Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications. 
 
 ```bash
-# starting from 'receive/mac'
+# starting from 'receive/linux'
 mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
