@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(AirSimCamSend)
+project(airsim-cam-send)
 
 if (NOT DEFINED ENV{AIRSIM_ROOT})
     message(FATAL_ERROR "set the env variable AIRSIM_ROOT to the AirSim install directory")
