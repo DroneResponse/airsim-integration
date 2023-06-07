@@ -133,3 +133,15 @@ The optional `-r` flag will artificially override and remove any gimbal camera r
 No flag will set the Airsim drone pose to the gazebo drone's pose.
 
 
+## Running pose in docker
+
+The pose program runs in docker.
+
+When using this as part of `dr_onboard` you can start px4 in container will
+receive the gazebo messages and send them to AirSim
+
+```bash
+docker build . -t pose
+docker run --rm -it pose send_drone_pose  -p <port> -a <address>
+```
+

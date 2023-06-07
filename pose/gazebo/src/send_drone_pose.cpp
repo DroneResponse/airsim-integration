@@ -105,13 +105,7 @@ int main(int argc, char** argv)
         }
         if (strcmp(argv[i], "-a") == 0) {
             std::string ss = argv[i + 1];
-            if (strcmp(&ss.back(), " ") == 0) {
-                std::cerr << "Trailing spaces after address: " << ss << '\n';
-            } else if (!(std::count(ss.begin(), ss.end(), '.') == 3)) {
-                std::cerr << "Invalid address format: " << ss << '\n';
-            } else {
-                AIRSIM_HOST = ss;
-            }
+            AIRSIM_HOST = ss;
         }
     }
 
