@@ -4,6 +4,15 @@ project(send_drone_pose)
 
 set (CMAKE_CXX_STANDARD 20)
 
+# include googletest
+# latest verified commit on main 06/13/2023
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/001f281926c74a819e9266bb4ec525515ff39418.zip
+)
+FetchContent_MakeAvailable(googletest)
+
 set(UdpSourceDir
     ../src
 )
