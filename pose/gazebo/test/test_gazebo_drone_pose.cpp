@@ -1,13 +1,18 @@
+#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+
 #include <gazebo/msgs/msgs.hh>
 
-#include "send_drone_pose_pi.hpp"
+#include "gazebo_drone_pose.hpp"
+#include "test_udp_sender.hpp"
 
+using ::testing::AtLeast;
 
 /**
  * Each new drone instance in a gazebo pose should get a new id that is sent in the
  * UDPSender pose message
 */
-void testCbLocalPoseDroneIds() {
+void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     gazebo::msgs::PosesStamped mockMsg;
     
     // set drone_0 pose
@@ -17,7 +22,7 @@ void testCbLocalPoseDroneIds() {
     position0.set_y(2.2);
     position0.set_z(3.3);
 
-    pose0.set_allocated_position(position0);
+    pose0.set_allocated_position(&position0);
 
     gazebo::msgs::Quaternion quaternion0;
     quaternion0.set_w(0.7073883);
@@ -25,7 +30,7 @@ void testCbLocalPoseDroneIds() {
     quaternion0.set_y(0.7068252);
     quaternion0.set_z(0.0);
 
-    pose0.set_allocated_position(quaternion0);
+    pose0.set_allocated_orientation(&quaternion0);
 
     pose0.set_name("drone_0");
 
@@ -38,7 +43,7 @@ void testCbLocalPoseDroneIds() {
     position1.set_y(22.22);
     position1.set_z(33.33);
 
-    pose1.set_allocated_position(position1);
+    pose1.set_allocated_position(&position1);
 
     gazebo::msgs::Quaternion quaternion1;
     quaternion1.set_w(0.0007963);
@@ -46,9 +51,20 @@ void testCbLocalPoseDroneIds() {
     quaternion1.set_y(0.0);
     quaternion1.set_z(0.0);
 
-    pose0.set_allocated_position(quaternion1);
+    pose0.set_allocated_orientation(&quaternion1);
 
     pose1.set_name("drone_1");
 
     mockMsg.add_pose(pose1);
+
+    
+    MockUDPSender mockUdpSender ("10.2.24.65", 6565);
+    GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
+    EXPECT_TRUE(generateCbLocalPose.cbLocalPose(&mockMsg));
+}
+
+
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

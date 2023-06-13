@@ -20,6 +20,20 @@ set(UdpSourceFiles
     ${UdpSourceDir}/udp_sender.cpp
 )
 
+# test specific
+set(UdpSourceDirTest
+    ../src/test
+)
+set(UdpSourceFilesTest
+    ${UdpSourceDirTest}/test/test_udp_sender.cpp
+)
+set(GazeboDronePoseDirTest
+    ./src/test
+)
+set(GazeboDronePoseSourceFilesTest
+    ${GazeboDronePoseDirTest}/test/test_udp_sender.cpp
+)
+
 
 find_package(gazebo REQUIRED)
 
