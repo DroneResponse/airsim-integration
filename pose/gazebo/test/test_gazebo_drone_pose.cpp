@@ -54,7 +54,11 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
 
     pose1->set_name("drone_1");
 
-    
+    // somewhere in test above ^
+    // test_gazebo_drone_pose(2712,0x202374600) malloc: *** error for object 0x308454128: pointer being freed was not allocated
+    // test_gazebo_drone_pose(2712,0x202374600) malloc: *** set a breakpoint in malloc_error_break to debug
+    // lldb: https://lldb.llvm.org/use/tutorial.html
+
     MockUDPSender mockUdpSender;
     GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
     // https://www.boost.org/doc/libs/1_36_0/libs/smart_ptr/shared_ptr.htm constructor information
