@@ -2,16 +2,19 @@
 #include "pose.hpp"
 #include "udp_sender.hpp"
 
-GenerateCbLocalPose::GenerateCbLocalPose(UDPSender& udpSender) {
+constexpr int NWIDTH = 7;
+static constexpr int MESSAGE_THROTTLE = 100;
+
+
+GenerateCbLocalPose::GenerateCbLocalPose(UDPSender* udpSender) {
     this->udpSender = udpSender;
 }
 
 
-GenerateCbLocalPose::~GenerateCbLocalPose();
+GenerateCbLocalPose::~GenerateCbLocalPose() {};
 
 
-GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg)
-{
+void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     // "~/pose/local/info" is published at 250 Hz
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
@@ -69,7 +72,7 @@ GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg)
             .drone = drone_pose,
             .camera = camera_pose
         };
-        udp_sender.send_pose_message(pose_message);
+        this->udpSender->send_pose_message(pose_message);
     }
 
     if (count % MESSAGE_THROTTLE == 0) {

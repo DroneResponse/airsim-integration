@@ -21,7 +21,7 @@ class GenerateCbLocalPose {
         */
         void cbLocalPose(ConstPosesStampedPtr& msg);
     private:
-        UDPSender& udpSender;
+        UDPSender* udpSender;
 };
 
 #endif

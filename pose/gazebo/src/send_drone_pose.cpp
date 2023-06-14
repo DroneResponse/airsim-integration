@@ -11,11 +11,6 @@
 #include "gazebo_drone_pose.hpp"
 
 
-constexpr int NWIDTH = 7;
-static constexpr int MESSAGE_THROTTLE = 100;
-
-
-
 int main(int argc, char** argv)
 {
     std::string AIRSIM_HOST = "127.0.0.1";
