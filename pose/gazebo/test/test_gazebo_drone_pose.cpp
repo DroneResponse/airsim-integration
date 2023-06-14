@@ -68,6 +68,6 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
 
 
 int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleTest(&argc, argv); // https://google.github.io/googletest/primer.html
     return RUN_ALL_TESTS();
 }
