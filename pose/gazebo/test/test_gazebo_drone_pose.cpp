@@ -16,13 +16,13 @@ void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     gazebo::msgs::PosesStamped mockMsg;
     
     // set drone_0 pose
-    gazebo::msgs::Pose pose0;
+    gazebo::msgs::Pose* pose0 = mockMsg.add_pose();
     gazebo::msgs::Vector3d position0;
     position0.set_x(1.1);
     position0.set_y(2.2);
     position0.set_z(3.3);
 
-    pose0.set_allocated_position(&position0);
+    pose0->set_allocated_position(&position0);
 
     gazebo::msgs::Quaternion quaternion0;
     quaternion0.set_w(0.7073883);
@@ -30,20 +30,18 @@ void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     quaternion0.set_y(0.7068252);
     quaternion0.set_z(0.0);
 
-    pose0.set_allocated_orientation(&quaternion0);
+    pose0->set_allocated_orientation(&quaternion0);
 
-    pose0.set_name("drone_0");
-
-    mockMsg.add_pose(pose0);
+    pose0->set_name("drone_0");
 
     // set drone_1 pose
-    gazebo::msgs::Pose pose1;
+    gazebo::msgs::Pose* pose1 = mockMsg.add_pose();;
     gazebo::msgs::Vector3d position1;
     position1.set_x(11.11);
     position1.set_y(22.22);
     position1.set_z(33.33);
 
-    pose1.set_allocated_position(&position1);
+    pose1->set_allocated_position(&position1);
 
     gazebo::msgs::Quaternion quaternion1;
     quaternion1.set_w(0.0007963);
@@ -51,16 +49,16 @@ void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     quaternion1.set_y(0.0);
     quaternion1.set_z(0.0);
 
-    pose0.set_allocated_orientation(&quaternion1);
+    pose1->set_allocated_orientation(&quaternion1);
 
-    pose1.set_name("drone_1");
-
-    mockMsg.add_pose(pose1);
+    pose1->set_name("drone_1");
 
     
-    MockUDPSender mockUdpSender ("10.2.24.65", 6565);
+    MockUDPSender mockUdpSender;
     GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
-    EXPECT_TRUE(generateCbLocalPose.cbLocalPose(&mockMsg));
+    // https://www.boost.org/doc/libs/1_36_0/libs/smart_ptr/shared_ptr.htm constructor information
+    ConstPosesStampedPtr mockConstMsg (&mockMsg);
+    EXPECT_TRUE(generateCbLocalPose.cbLocalPose(mockConstMsg));
 }
 
 
