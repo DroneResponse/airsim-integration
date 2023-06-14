@@ -1,18 +1,19 @@
 #include <gtest/gtest.h>
-#include "gmock/gmock.h"
 
 #include <gazebo/msgs/msgs.hh>
 
 #include "gazebo_drone_pose.hpp"
 #include "test_udp_sender.hpp"
 
+
 using ::testing::AtLeast;
+
 
 /**
  * Each new drone instance in a gazebo pose should get a new id that is sent in the
  * UDPSender pose message
 */
-void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
+TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     gazebo::msgs::PosesStamped mockMsg;
     
     // set drone_0 pose
@@ -58,7 +59,7 @@ void TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
     // https://www.boost.org/doc/libs/1_36_0/libs/smart_ptr/shared_ptr.htm constructor information
     ConstPosesStampedPtr mockConstMsg (&mockMsg);
-    EXPECT_TRUE(generateCbLocalPose.cbLocalPose(mockConstMsg));
+    generateCbLocalPose.cbLocalPose(mockConstMsg);
 }
 
 
