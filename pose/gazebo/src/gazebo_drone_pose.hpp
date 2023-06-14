@@ -13,7 +13,7 @@ class GenerateCbLocalPose {
          * constructor
          * @param udpSender a UDPSender object
         */
-        GenerateCbLocalPose(UDPSender& udpSender);
+        GenerateCbLocalPose(UDPSender* udpSender);
         ~GenerateCbLocalPose();
         /**
          * local pose callback where gazebo drone represents airsim drone's global pose
