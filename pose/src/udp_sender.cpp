@@ -5,7 +5,19 @@
 UDPSender::UDPSender(std::string host, unsigned short dest_port) {
     this->dest_port = dest_port;
     this->host = host;
+}
 
+
+UDPSender::~UDPSender() {
+    if (!shutdown(this->sock, SHUT_RDWR)) {
+        std::cerr << "udp sender socket not successfully closed" << std::endl;
+    };
+
+    std::cout << "udp sender socket successfully closed" << std::endl;
+}
+
+
+void UDPSender::create_socket() {
     struct addrinfo hints;
     struct addrinfo *result, *rp;
 
@@ -52,15 +64,6 @@ UDPSender::UDPSender(std::string host, unsigned short dest_port) {
         std::cerr << "Connection could not be established" << std::endl;
         exit(-1);
     }
-}
-
-
-UDPSender::~UDPSender() {
-    if (!shutdown(this->sock, SHUT_RDWR)) {
-        std::cerr << "udp sender socket not successfully closed" << std::endl;
-    };
-
-    std::cout << "udp sender socket successfully closed" << std::endl;
 }
 
 

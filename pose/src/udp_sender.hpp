@@ -13,6 +13,9 @@ class UDPSender {       // The class
     public:             // Access specifier
         UDPSender(std::string host, unsigned short int dest_port);  // Constructor
         virtual ~UDPSender();
+        /* Opens socket for initialized host and port
+        */
+        virtual void create_socket();
         virtual void send_pose_message(const PoseTransfer::PoseMessage pose_message);  // Method/function declaration
     private:
         unsigned short int dest_port;

@@ -8,6 +8,7 @@ static constexpr int MESSAGE_THROTTLE = 100;
 
 GenerateCbLocalPose::GenerateCbLocalPose(UDPSender* udpSender) {
     this->udpSender = udpSender;
+    this->udpSender->create_socket();
 }
 
 
