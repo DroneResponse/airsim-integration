@@ -6,7 +6,9 @@ constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
 
-GenerateCbLocalPose::GenerateCbLocalPose(UDPSender* udpSender) {
+GenerateCbLocalPose::GenerateCbLocalPose(
+    UDPSender* udpSender
+) {
     this->udpSender = udpSender;
     this->udpSender->create_socket();
 }
@@ -81,4 +83,17 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     }
 
     ++count;
+}
+
+
+gazebo::transport::SubscriberPtr GenerateCbLocalPose::subscribeGazeboNode(
+    gazebo::transport::NodePtr gazeboNodePtr
+) {
+    // Listen to Gazebo topics
+    // update freq ~250 hz
+    return gazeboNodePtr->Subscribe(
+        "~/pose/local/info",
+        &GenerateCbLocalPose::cbLocalPose,
+        this
+    );
 }

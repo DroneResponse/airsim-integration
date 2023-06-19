@@ -42,12 +42,11 @@ int main(int argc, char** argv)
     gazebo::client::setup(argc, argv);
 
     // Create our node for communication
-    gazebo::transport::NodePtr node(new gazebo::transport::Node());
-    node->Init();
+    gazebo::transport::NodePtr gazeboNodePtr(new gazebo::transport::Node());
+    gazeboNodePtr->Init();
 
-    // Listen to Gazebo topics
-    // update freq ~250 hz
-    gazebo::transport::SubscriberPtr sub_pose1 = node->Subscribe("~/pose/local/info", generateCbLocalPose.cbLocalPose);
+    
+    gazebo::transport::SubscriberPtr sub_pose1 = generateCbLocalPose.subscribeGazeboNode(gazeboNodePtr);
 
     while (true)
         gazebo::common::Time::MSleep(10);
