@@ -76,7 +76,6 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         }
 
         if (drone_pose.x != 0 && camera_pose.x != 0) {
-            std::cout << drone_pose.x << " ** " << camera_pose.x << "\n\n";
             PoseTransfer::PoseMessage pose_message {
                 .message_counter = (uint64_t) count,
                 .drone = drone_pose,
