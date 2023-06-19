@@ -135,7 +135,7 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
         InSequence s;
     
         EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_0)));
-        // EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_1)));
+        EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_1)));
     }
 
     GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
@@ -144,11 +144,14 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     ConstPosesStampedPtr mockConstMsgPtr ( new const gazebo::msgs::PosesStamped(mockMsg) );
     generateCbLocalPose.cbLocalPose(mockConstMsgPtr);
     
-    EXPECT_EQ(actual_pose_message_0.drone.x, mock_drone_1_pose.x);
-    std::cout << actual_pose_message_0.drone.x << "\n";
-    std::cout << actual_pose_message_0.drone.y << "\n";
-    std::cout << actual_pose_message_0.drone.z << "\n";
-    std::cout << actual_pose_message_0.message_counter << "\n";
+    EXPECT_EQ(actual_pose_message_0.drone.x, mock_drone_0_pose.x);
+    EXPECT_EQ(actual_pose_message_0.drone.w, mock_drone_0_pose.w);
+    EXPECT_EQ(actual_pose_message_0.camera.x, mock_camera_0_pose.x);
+    EXPECT_EQ(actual_pose_message_0.camera.w, mock_camera_0_pose.w);
+    EXPECT_EQ(actual_pose_message_1.drone.x, mock_drone_1_pose.x);
+    EXPECT_EQ(actual_pose_message_1.drone.w, mock_drone_1_pose.w);
+    EXPECT_EQ(actual_pose_message_1.camera.x, mock_camera_1_pose.x);
+    EXPECT_EQ(actual_pose_message_1.camera.w, mock_camera_1_pose.w);
 }
 
 

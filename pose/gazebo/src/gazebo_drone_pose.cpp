@@ -74,20 +74,23 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.yj = oy;
             camera_pose.zk = oz;
         }
+
+        if (drone_pose.x != 0 && camera_pose.x != 0) {
+            std::cout << drone_pose.x << " ** " << camera_pose.x << "\n\n";
+            PoseTransfer::PoseMessage pose_message {
+                .message_counter = (uint64_t) count,
+                .drone = drone_pose,
+                .camera = camera_pose
+            };
+            // since all poses are grouped together for each drone within a message,
+            // reset camera_pose and drone_pose to zeros after sending a message
+            // all drone a poses, then all drone b poses, then all drone c poses, . . .
+            this->udpSender->send_pose_message(pose_message);
+            memset(&drone_pose, 0, sizeof(drone_pose));
+            memset(&camera_pose, 0, sizeof(camera_pose));
+        }
     }
 
-    if (drone_pose.x != 0 && camera_pose.x != 0) {
-        PoseTransfer::PoseMessage pose_message {
-            .message_counter = (uint64_t) count,
-            .drone = drone_pose,
-            .camera = camera_pose
-        };
-        // todo: find a way to pair up drone and camera poses for each unique drone
-        // don't want to mix one drone's body pose with another's camera pose
-        // since poses are grouped together for each drone within a message, may be able to 
-        // reset camera_pose and drone_pose to zeros after sending a message
-        this->udpSender->send_pose_message(pose_message);
-    }
 
     if (count % MESSAGE_THROTTLE == 0) {
         std::cout << std::endl;
