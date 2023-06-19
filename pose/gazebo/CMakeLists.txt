@@ -19,27 +19,19 @@ set(UdpSourceDir
 set(UdpSourceFiles
     ${UdpSourceDir}/udp_sender.cpp
 )
-
-# test specific
-set(UdpSourceDirTest
-    ../src/test
+set(DronePoseSourceDir
+    ../src
 )
-set(UdpSourceFilesTest
-    ${UdpSourceDirTest}/test/test_udp_sender.cpp
+set(DronePoseSourceFiles
+    ${DronePoseSourceDir}/gazebo_drone_pose.cpp
 )
-set(GazeboDronePoseDirTest
-    ./src/test
-)
-set(GazeboDronePoseSourceFilesTest
-    ${GazeboDronePoseDirTest}/test/test_udp_sender.cpp
-)
-
 
 find_package(gazebo REQUIRED)
 
 include_directories(
     ${GAZEBO_INCLUDE_DIRS}
     ${UdpSourceDir}
+    ${DronePoseSourceDir}
 )
 
 link_directories(
@@ -48,7 +40,7 @@ link_directories(
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
-add_executable(${PROJECT_NAME} src/send_drone_pose.cpp ${UdpSourceFiles})
+add_executable(${PROJECT_NAME} src/send_drone_pose.cpp ${DronePoseSourceFiles} ${UdpSourceFiles} )
 
 target_link_libraries(
     ${PROJECT_NAME}
