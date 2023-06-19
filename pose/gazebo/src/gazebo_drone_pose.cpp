@@ -1,3 +1,5 @@
+#include <string>
+
 #include "gazebo_drone_pose.hpp"
 #include "pose.hpp"
 #include "udp_sender.hpp"
@@ -49,7 +51,10 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
             std::cout << std::endl;
         }
-        if (i == 0) {
+    
+        std::string msg_name = msg->pose(i).name();
+        // https://en.cppreference.com/w/cpp/string/basic_string/npos
+        if (msg_name.find("::") == std::string::npos) {
             drone_pose.x = x;
             drone_pose.y = y;
             drone_pose.z = z;
@@ -58,7 +63,9 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             drone_pose.yj = oy;
             drone_pose.zk = oz;
         }
-        if (msg->pose(i).name() == "typhoon_h480::cgo3_camera_link") {
+        else if (
+            msg_name.substr(msg_name.find("::") + 2, std::string::npos) == "cgo3_camera_link"
+        ) {
             camera_pose.x = x;
             camera_pose.y = y;
             camera_pose.z = z;
@@ -75,6 +82,10 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             .drone = drone_pose,
             .camera = camera_pose
         };
+        // todo: find a way to pair up drone and camera poses for each unique drone
+        // don't want to mix one drone's body pose with another's camera pose
+        // since poses are grouped together for each drone within a message, may be able to 
+        // reset camera_pose and drone_pose to zeros after sending a message
         this->udpSender->send_pose_message(pose_message);
     }
 

@@ -11,6 +11,7 @@ using ::testing::AtLeast;
 using ::testing::Eq;
 using ::testing::SaveArg;
 using ::testing::DoAll;
+using ::testing::InSequence;
 
 
 /**
@@ -29,6 +30,7 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     };
     PoseTransfer::Pose mock_camera_0_pose;
     memset(&mock_camera_0_pose, 0, sizeof(mock_camera_0_pose));
+    mock_camera_0_pose.x = 0.5;
     PoseTransfer::PoseMessage mock_pose_message_0 {
         .message_counter = 0,
         .drone = mock_drone_0_pose,
@@ -45,13 +47,18 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     };
     PoseTransfer::Pose mock_camera_1_pose;
     memset(&mock_camera_1_pose, 0, sizeof(mock_camera_1_pose));
+    mock_camera_1_pose.x = 0.10;
     PoseTransfer::PoseMessage mock_pose_message_1 {
         .message_counter = 1,
         .drone = mock_drone_1_pose,
         .camera = mock_camera_1_pose
     };
     
-    //  need to figure out if each drone sends its own message or all poses come in on one message
+    //  all drones send their poses in a single message
+    // local ( 0) typhoon_h480_0                   x:  -0.001 y:  -0.000 z:   0.246 ow:   1.000 ox:   0.000 oy:   0.002 oz:   0.001
+    // local ( 5) typhoon_h480_0::cgo3_camera_link x:   0.004 y:   0.000 z:   0.000 ow:   1.000 ox:  -0.001 oy:   0.010 oz:  -0.001
+    // local (17) typhoon_h480_1                   x:  -0.002 y:   1.000 z:   0.245 ow:   1.000 ox:  -0.000 oy:   0.001 oz:   0.001
+    // where (xx) is the pose number within a single message
     gazebo::msgs::PosesStamped mockMsg;
     
     // set drone_0 pose
@@ -70,19 +77,19 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     pose0->set_name("drone_0");
 
     // set drone_0 camera pose
-    gazebo::msgs::Pose* pose0_cam0 = mockMsg.add_pose();
-    gazebo::msgs::Vector3d* position0_cam0 = pose0_cam0->mutable_position();
-    position0_cam0->set_x(mock_camera_0_pose.x);
-    position0_cam0->set_y(mock_camera_0_pose.y);
-    position0_cam0->set_z(mock_camera_0_pose.z);
+    gazebo::msgs::Pose* pose0_cam = mockMsg.add_pose();
+    gazebo::msgs::Vector3d* position0_cam = pose0_cam->mutable_position();
+    position0_cam->set_x(mock_camera_0_pose.x);
+    position0_cam->set_y(mock_camera_0_pose.y);
+    position0_cam->set_z(mock_camera_0_pose.z);
 
-    gazebo::msgs::Quaternion* quaternion0_cam0 = pose0_cam0->mutable_orientation();
-    quaternion0_cam0->set_w(mock_camera_0_pose.w);
-    quaternion0_cam0->set_x(mock_camera_0_pose.xi);
-    quaternion0_cam0->set_y(mock_camera_0_pose.yj);
-    quaternion0_cam0->set_z(mock_camera_0_pose.zk);
+    gazebo::msgs::Quaternion* quaternion0_cam = pose0_cam->mutable_orientation();
+    quaternion0_cam->set_w(mock_camera_0_pose.w);
+    quaternion0_cam->set_x(mock_camera_0_pose.xi);
+    quaternion0_cam->set_y(mock_camera_0_pose.yj);
+    quaternion0_cam->set_z(mock_camera_0_pose.zk);
 
-    pose0_cam0->set_name("drone_0::cg03_camera_link");
+    pose0_cam->set_name("drone_0::cgo3_camera_link");
 
 
     // set drone_1 pose
@@ -100,13 +107,36 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
 
     pose1->set_name("drone_1");
 
+    // set drone_1 camera pose
+    gazebo::msgs::Pose* pose1_cam = mockMsg.add_pose();
+    gazebo::msgs::Vector3d* position1_cam = pose1_cam->mutable_position();
+    position1_cam->set_x(mock_camera_1_pose.x);
+    position1_cam->set_y(mock_camera_1_pose.y);
+    position1_cam->set_z(mock_camera_1_pose.z);
+
+    gazebo::msgs::Quaternion* quaternion1_cam = pose1_cam->mutable_orientation();
+    quaternion1_cam->set_w(mock_camera_1_pose.w);
+    quaternion1_cam->set_x(mock_camera_1_pose.xi);
+    quaternion1_cam->set_y(mock_camera_1_pose.yj);
+    quaternion1_cam->set_z(mock_camera_1_pose.zk);
+
+    pose1_cam->set_name("drone_1::cgo3_camera_link");
+
     MockUDPSender mockUdpSender;
     EXPECT_CALL(mockUdpSender, create_socket()).Times(1);
-    PoseTransfer::PoseMessage actual_pose_message;
+    PoseTransfer::PoseMessage actual_pose_message_0;
+    memset(&actual_pose_message_0, 0, sizeof(actual_pose_message_0));
+    PoseTransfer::PoseMessage actual_pose_message_1;
+    memset(&actual_pose_message_1, 0, sizeof(actual_pose_message_1));
     // trying to validate send_pose_message called with PoseMessage containing expected values
     // https://google.github.io/googletest/gmock_cook_book.html#SaveArgVerify
-    EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message)));
-    // EXPECT_THAT(actual_pose_message.)
+    // https://google.github.io/googletest/gmock_cook_book.html#OrderedCalls
+    {
+        InSequence s;
+    
+        EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_0)));
+        // EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_1)));
+    }
 
     GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
 
@@ -114,6 +144,11 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     ConstPosesStampedPtr mockConstMsgPtr ( new const gazebo::msgs::PosesStamped(mockMsg) );
     generateCbLocalPose.cbLocalPose(mockConstMsgPtr);
     
+    EXPECT_EQ(actual_pose_message_0.drone.x, mock_drone_1_pose.x);
+    std::cout << actual_pose_message_0.drone.x << "\n";
+    std::cout << actual_pose_message_0.drone.y << "\n";
+    std::cout << actual_pose_message_0.drone.z << "\n";
+    std::cout << actual_pose_message_0.message_counter << "\n";
 }
 
 
