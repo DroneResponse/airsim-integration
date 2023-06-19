@@ -39,7 +39,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         auto oy = msg->pose(i).orientation().y();
         auto oz = msg->pose(i).orientation().z();
         if (count % MESSAGE_THROTTLE == 0) {
-            std::cout << "local (" << std::setw(2) << i << ") ";
+            std::cout << "local (" << std::setw(3) << i << ") ";
             std::cout << std::left << std::setw(32) << msg->pose(i).name();
             std::cout << " x: " << std::right << std::setw(NWIDTH) << x;
             std::cout << " y: " << std::right << std::setw(NWIDTH) << y;
