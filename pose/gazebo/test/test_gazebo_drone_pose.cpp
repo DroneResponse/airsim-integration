@@ -154,8 +154,3 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     EXPECT_EQ(actual_pose_message_1.camera.w, mock_camera_1_pose.w);
 }
 
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv); // https://google.github.io/googletest/primer.html
-    return RUN_ALL_TESTS();
-}

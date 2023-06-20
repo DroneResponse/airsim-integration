@@ -4,6 +4,8 @@ project(test_gazebo_drone_pose)
 
 set (CMAKE_CXX_STANDARD 20)
 
+find_package(gazebo REQUIRED)
+
 # include googletest
 include(FetchContent)
 FetchContent_Declare(
@@ -13,50 +15,26 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-set(DronePoseSourceDir
-    ../send_drone_pose
-)
-set(DronePoseSourceFiles
-    ${DronePoseSourceDir}/gazebo_drone_pose.cpp
-)
-set(SendReceiveSourceDir
-    ../../pose_send_receive
-)
-set(SendReceiveSourceFiles
-    ${SendReceiveSourceDir}/udp_sender.cpp
-)
-
-# test specific
-set(SendReceiveSourceDirTest
-    ../../test/pose_send_receive
-)
-
-find_package(gazebo REQUIRED)
-
+# mocks for send / receive interfaces
 include_directories(
-    ${DronePoseSourceDir}
-    ${GAZEBO_INCLUDE_DIRS}
-    ${SendReceiveSourceDir}
-    ${SendReceiveSourceDirTest}
+    ../../test/pose_send_receive
 )
 
 link_directories(
     ${GAZEBO_LIBRARY_DIRS}
 )
 
-list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
-
 add_executable(
-    ${PROJECT_NAME}
-    ./test_gazebo_drone_pose.cpp
-    ${DronePoseSourceFiles}
-    ${SendReceiveSourceFiles}
+    test_all
+    test_gazebo_drone_pose.cpp
 )
 
 target_link_libraries(
-    ${PROJECT_NAME}
+    test_all
     ${GAZEBO_LIBRARIES}
-    pthread
+    gazebo_drone_pose
+    pose_send_udp
+    GTest::gtest_main
     GTest::gtest
     GTest::gmock
 )
