@@ -1,3 +1,4 @@
+# Organized similar to: http://www.kaizou.org/2014/11/typical-cmake-project.html
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(send_drone_pose)
