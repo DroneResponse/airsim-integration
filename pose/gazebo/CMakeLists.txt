@@ -2,9 +2,10 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(send_drone_pose)
-# TODO: default make is send_drone_pose
 
 set (CMAKE_CXX_STANDARD 20)
+
+# general make subdirectory notes: https://cmake.org/examples/
 
 # out of tree dir, so need to place generated binary libs in build
 # https://stackoverflow.com/questions/35260552/how-do-i-explicitly-specify-an-out-of-tree-source-in-cmake

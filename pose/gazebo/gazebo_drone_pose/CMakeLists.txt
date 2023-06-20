@@ -11,7 +11,8 @@ set(SendReceiveSourceDir
 include_directories(
     ${SendReceiveSourceDir}   
 )
-    
+
+# creates a target as library called 'gazebo_drone_pose'
 add_library(gazebo_drone_pose STATIC gazebo_drone_pose.cpp)
     
 target_include_directories (
