@@ -11,6 +11,6 @@ set (CMAKE_CXX_STANDARD 20)
 add_subdirectory(../pose_send_receive ./pose_send_receive)
 add_subdirectory(gazebo_drone_pose)
 add_subdirectory(send_drone_pose)
-add_subdirectory(test)
+add_subdirectory(test EXCLUDE_FROM_ALL)
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
