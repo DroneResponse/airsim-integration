@@ -8,6 +8,8 @@ link_directories(
 
 add_executable(send_drone_pose ./send_drone_pose.cpp)
 
+# gazebo_drone_pose and pose_send_udp targets built and added as libraries at top level CMakeLists
+# via add_submodule
 target_link_libraries(
     send_drone_pose
     ${GAZEBO_LIBRARIES}
