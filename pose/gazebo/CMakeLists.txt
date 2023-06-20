@@ -7,22 +7,17 @@ set (CMAKE_CXX_STANDARD 20)
 set(SendReceiveSourceDir
     ../pose_send_receive
 )
-set(UdpSourceFiles
+set(SendReceiveSourceFiles
     ${SendReceiveSourceDir}/udp_sender.cpp
 )
-set(DronePoseSourceDir
-    ./send_drone_pose
-)
-set(DronePoseSourceFiles
-    ${DronePoseSourceDir}/gazebo_drone_pose.cpp
-)
+
+add_subdirectory(gazebo_drone_pose)
 
 find_package(gazebo REQUIRED)
 
 include_directories(
     ${GAZEBO_INCLUDE_DIRS}
     ${SendReceiveSourceDir}
-    ${DronePoseSourceDir}
 )
 
 link_directories(
@@ -31,10 +26,11 @@ link_directories(
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
-add_executable(${PROJECT_NAME} ./send_drone_pose/send_drone_pose.cpp ${DronePoseSourceFiles} ${UdpSourceFiles} )
+add_executable(${PROJECT_NAME} ./send_drone_pose/send_drone_pose.cpp ${SendReceiveSourceFiles} )
 
 target_link_libraries(
     ${PROJECT_NAME}
     ${GAZEBO_LIBRARIES}
     pthread
+    gazebo_drone_pose
 )
