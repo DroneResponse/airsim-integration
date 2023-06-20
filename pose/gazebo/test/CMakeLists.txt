@@ -24,6 +24,7 @@ link_directories(
     ${GAZEBO_LIBRARY_DIRS}
 )
 
+# add any additional test files as sources
 add_executable(
     test_all
     test_gazebo_drone_pose.cpp
