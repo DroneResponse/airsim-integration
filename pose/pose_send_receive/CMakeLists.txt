@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+
+add_library(pose_send_udp STATIC udp_sender.cpp)
+
+target_include_directories (pose_send_udp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
