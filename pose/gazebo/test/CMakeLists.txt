@@ -14,21 +14,21 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 set(DronePoseSourceDir
-    ../src
+    ../send_drone_pose
 )
 set(DronePoseSourceFiles
     ${DronePoseSourceDir}/gazebo_drone_pose.cpp
 )
-set(UdpSourceDir
-    ../../src
+set(SendReceiveSourceDir
+    ../../pose_send_receive
 )
-set(UdpSourceFiles
-    ${UdpSourceDir}/udp_sender.cpp
+set(SendReceiveSourceFiles
+    ${SendReceiveSourceDir}/udp_sender.cpp
 )
 
 # test specific
-set(UdpSourceDirTest
-    ../../test
+set(SendReceiveSourceDirTest
+    ../../test/pose_send_receive
 )
 
 find_package(gazebo REQUIRED)
@@ -36,8 +36,8 @@ find_package(gazebo REQUIRED)
 include_directories(
     ${DronePoseSourceDir}
     ${GAZEBO_INCLUDE_DIRS}
-    ${UdpSourceDir}
-    ${UdpSourceDirTest}
+    ${SendReceiveSourceDir}
+    ${SendReceiveSourceDirTest}
 )
 
 link_directories(
@@ -50,8 +50,7 @@ add_executable(
     ${PROJECT_NAME}
     ./test_gazebo_drone_pose.cpp
     ${DronePoseSourceFiles}
-    ${UdpSourceFiles}
-    ${UdpSourceFilesTest}
+    ${SendReceiveSourceFiles}
 )
 
 target_link_libraries(
