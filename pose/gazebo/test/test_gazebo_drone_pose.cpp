@@ -148,9 +148,12 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     EXPECT_EQ(actual_pose_message_0.drone.w, mock_drone_0_pose.w);
     EXPECT_EQ(actual_pose_message_0.camera.x, mock_camera_0_pose.x);
     EXPECT_EQ(actual_pose_message_0.camera.w, mock_camera_0_pose.w);
+    EXPECT_EQ(actual_pose_message_0.drone_id, 1);
+
     EXPECT_EQ(actual_pose_message_1.drone.x, mock_drone_1_pose.x);
     EXPECT_EQ(actual_pose_message_1.drone.w, mock_drone_1_pose.w);
     EXPECT_EQ(actual_pose_message_1.camera.x, mock_camera_1_pose.x);
     EXPECT_EQ(actual_pose_message_1.camera.w, mock_camera_1_pose.w);
+    EXPECT_EQ(actual_pose_message_1.drone_id, 2);
 }
 
