@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
 
@@ -29,6 +31,13 @@ class GenerateCbLocalPose {
         );
     private:
         UDPSender* udpSender;
+        std::unordered_map<std::string, uint16_t> droneIds;
+        uint16_t uniqueDroneCount = 0;
+        /**
+         * gives a single unique uint16_t id to each unique drone name provided
+         * @param droneName unique name of a drone
+        */
+        void trackDroneIds(std::string droneName);
 };
 
 #endif

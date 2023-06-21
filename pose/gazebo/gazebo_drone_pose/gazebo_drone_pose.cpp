@@ -19,6 +19,14 @@ GenerateCbLocalPose::GenerateCbLocalPose(
 GenerateCbLocalPose::~GenerateCbLocalPose() {};
 
 
+void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
+    if (!this->droneIds.contains(droneName)) {
+        this->uniqueDroneCount++;
+        this->droneIds[droneName] = uniqueDroneCount;
+    }
+}
+
+
 void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     // "~/pose/local/info" is published at 250 Hz
     std::cout << std::fixed;
@@ -29,6 +37,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     PoseTransfer::Pose camera_pose;
     memset(&drone_pose, 0, sizeof(drone_pose));
     memset(&camera_pose, 0, sizeof(camera_pose));
+    std::string current_drone_name;
 
     for (int i = 0; i < msg->pose_size(); i++) {
         auto x = msg->pose(i).position().x();
@@ -54,7 +63,10 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     
         std::string msg_name = msg->pose(i).name();
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
+        // done body pose has no '::' delimiter - drone name only
         if (msg_name.find("::") == std::string::npos) {
+            current_drone_name = msg->pose(i).name(); 
+            this->trackDroneIds(current_drone_name);
             drone_pose.x = x;
             drone_pose.y = y;
             drone_pose.z = z;
@@ -76,10 +88,12 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         }
 
         if (drone_pose.x != 0 && camera_pose.x != 0) {
+            
             PoseTransfer::PoseMessage pose_message {
                 .message_counter = (uint64_t) count,
                 .drone = drone_pose,
-                .camera = camera_pose
+                .camera = camera_pose,
+                .drone_id = this->droneIds[current_drone_name]
             };
             // since all poses are grouped together for each drone within a message,
             // reset camera_pose and drone_pose to zeros after sending a message
