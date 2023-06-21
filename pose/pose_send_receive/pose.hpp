@@ -2,6 +2,7 @@
 #define POSE_H
 
 #include <stdint.h>
+#include <string>
 
 namespace PoseTransfer {
     // we need a struct that has fields for
@@ -21,6 +22,7 @@ namespace PoseTransfer {
         uint64_t message_counter; // this is a counter that increments every time we send a message
         Pose drone;
         Pose camera;
+        uint16_t drone_id;
     } PoseMessage;
 
     #pragma pack(push,1)
@@ -38,6 +40,7 @@ namespace PoseTransfer {
         uint64_t message_counter; // this is a counter that increments every time we send a message
         UdpPose drone;
         UdpPose camera;
+        uint16_t drone_id;
     } UdpPoseMessage;
     #pragma pack(pop)
 

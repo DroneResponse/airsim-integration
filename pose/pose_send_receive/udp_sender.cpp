@@ -98,7 +98,8 @@ PoseTransfer::UdpPoseMessage UDPSender::pose_to_udp_message(
     return PoseTransfer::UdpPoseMessage {
         .message_counter =  net_bits::hton64(pose_message.message_counter),
         .drone = drone_udp_pose,
-        .camera = camera_udp_pose
+        .camera = camera_udp_pose,
+        .drone_id = htons(pose_message.drone_id)
     };
 }
 
