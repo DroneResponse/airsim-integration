@@ -1,7 +1,25 @@
-#include <sys/socket.h>
+#ifdef _WIN32
+    // Windows-specific headers
+    #include <winsock2.h>
+    #include <windows.h>
+    #include <ws2tcpip.h>  // For Windows DNS-related functions
+#else
+    // Unix-specific headers
+    #include <sys/socket.h>
+    #include <netdb.h>
+#endif
+
+#ifndef SHUT_RDWR
+    /*
+    SHUT_RDWR is defined in sys/socket.h
+    but on windows winsock2.h defines SD_BOTH instead.
+    */
+    #define SHUT_RDWR SD_BOTH 
+#endif
+
 #include <sys/types.h>
 #include <mutex>
-#include <netdb.h>
+
 #include <iostream>
 #include <string>
 #include "pose.hpp"
