@@ -21,7 +21,7 @@ class UDPSender : public PoseSender {       // The class
         /** Sends pose message to destination host and port
         * @param pose_message message to be sent over udp
         */
-        virtual void send_pose_message(const PoseTransfer::PoseMessage pose_message);  // Method/function declaration
+        void send_pose_message(const PoseTransfer::PoseMessage pose_message);  // Method/function declaration
     private:
         unsigned short int dest_port;
         std::string host;

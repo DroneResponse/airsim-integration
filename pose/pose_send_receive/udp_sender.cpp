@@ -2,7 +2,7 @@
 #include "net_endian.hpp"
 #include <cstring>
 
-UDPSender::UDPSender(std::string host, unsigned short dest_port)  : PoseSender(host, dest_port) {
+UDPSender::UDPSender(std::string host, unsigned short dest_port) : PoseSender(host, dest_port) {
     this->dest_port = dest_port;
     this->host = host;
 }
