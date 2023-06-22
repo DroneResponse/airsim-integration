@@ -3,7 +3,7 @@
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
 
-#include "udp_sender.hpp"
+#include "pose_sender.hpp"
 
 #ifndef SEND_DRONE_POSE
 #define SEND_DRONE_POSE
@@ -13,9 +13,9 @@ class GenerateCbLocalPose {
     public:
         /**
          * constructor
-         * @param udpSender a UDPSender object
+         * @param poseSender a UDPSender object
         */
-        GenerateCbLocalPose(UDPSender* udpSender);
+        GenerateCbLocalPose(PoseSender* poseSender);
         ~GenerateCbLocalPose();
         /**
          * local pose callback where gazebo drone represents airsim drone's global pose
@@ -30,7 +30,7 @@ class GenerateCbLocalPose {
             gazebo::transport::NodePtr gazeboNodePtr
         );
     private:
-        UDPSender* udpSender;
+        PoseSender* poseSender;
         std::unordered_map<std::string, uint16_t> droneIds;
         uint16_t uniqueDroneCount = 0;
         /**

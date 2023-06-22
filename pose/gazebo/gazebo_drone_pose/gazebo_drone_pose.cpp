@@ -2,17 +2,17 @@
 
 #include "gazebo_drone_pose.hpp"
 #include "pose.hpp"
-#include "udp_sender.hpp"
+#include "pose_sender.hpp"
 
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
 
 GenerateCbLocalPose::GenerateCbLocalPose(
-    UDPSender* udpSender
+    PoseSender* poseSender
 ) {
-    this->udpSender = udpSender;
-    this->udpSender->create_socket();
+    this->poseSender = poseSender;
+    this->poseSender->create_socket();
 }
 
 
@@ -98,7 +98,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             // since all poses are grouped together for each drone within a message,
             // reset camera_pose and drone_pose to zeros after sending a message
             // all drone a poses, then all drone b poses, then all drone c poses, . . .
-            this->udpSender->send_pose_message(pose_message);
+            this->poseSender->send_pose_message(pose_message);
             memset(&drone_pose, 0, sizeof(drone_pose));
             memset(&camera_pose, 0, sizeof(camera_pose));
         }

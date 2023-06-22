@@ -4,7 +4,7 @@
 
 #include "gazebo_drone_pose.hpp"
 #include "pose.hpp"
-#include "test_udp_sender.hpp"
+#include "test_pose_sender.hpp"
 
 // https://google.github.io/googletest/gmock_for_dummies.html#using-mocks-in-tests
 using ::testing::AtLeast;
@@ -122,8 +122,8 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
 
     pose1_cam->set_name("drone_1::cgo3_camera_link");
 
-    MockUDPSender mockUdpSender;
-    EXPECT_CALL(mockUdpSender, create_socket()).Times(1);
+    MockPoseSender mockPoseSender;
+    EXPECT_CALL(mockPoseSender, create_socket()).Times(1);
     PoseTransfer::PoseMessage actual_pose_message_0;
     memset(&actual_pose_message_0, 0, sizeof(actual_pose_message_0));
     PoseTransfer::PoseMessage actual_pose_message_1;
@@ -134,11 +134,11 @@ TEST(TestDronePose, TestMultipleDronesSendPoseMessages) {
     {
         InSequence s;
     
-        EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_0)));
-        EXPECT_CALL(mockUdpSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_1)));
+        EXPECT_CALL(mockPoseSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_0)));
+        EXPECT_CALL(mockPoseSender, send_pose_message).WillOnce(DoAll(SaveArg<0>(&actual_pose_message_1)));
     }
 
-    GenerateCbLocalPose generateCbLocalPose (&mockUdpSender);
+    GenerateCbLocalPose generateCbLocalPose (&mockPoseSender);
 
     https://www.boost.org/doc/libs/1_55_0/libs/smart_ptr/shared_ptr.htm
     ConstPosesStampedPtr mockConstMsgPtr ( new const gazebo::msgs::PosesStamped(mockMsg) );
