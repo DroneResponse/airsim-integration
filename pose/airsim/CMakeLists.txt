@@ -13,7 +13,7 @@ set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
 set (CMAKE_CXX_STANDARD 20)
 
 set(UdpSourceDir
-    ../src
+    ../pose_send_receive
 )
 set(UdpSourceFiles
     ${UdpSourceDir}/udp_receiver.cpp
