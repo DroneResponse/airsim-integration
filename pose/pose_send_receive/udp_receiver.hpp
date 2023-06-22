@@ -5,12 +5,13 @@
 #include <iostream>
 #include <string>
 #include "pose.hpp"
+#include "pose_receiver.hpp"
 
 #ifndef UDP_RECEIVER_H
 #define UDP_RECEIVER_H
 
 
-class UDPReceiver {       // The class
+class UDPReceiver : public PoseReceiver {       // The class
     public:             // Access specifier
         UDPReceiver(unsigned short int listener_port);  // Constructor
         ~UDPReceiver();

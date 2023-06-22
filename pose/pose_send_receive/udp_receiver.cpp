@@ -2,7 +2,7 @@
 #include "net_endian.hpp"
 #include <cstring>
 
-UDPReceiver::UDPReceiver(unsigned short int listener_port) {
+UDPReceiver::UDPReceiver(unsigned short int listener_port) : PoseReceiver (listener_port) {
     this->listener_port = listener_port;
 
     struct addrinfo hints;
