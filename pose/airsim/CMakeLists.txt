@@ -12,12 +12,7 @@ set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
 
 set (CMAKE_CXX_STANDARD 20)
 
-set(UdpSourceDir
-    ../pose_send_receive
-)
-set(UdpSourceFiles
-    ${UdpSourceDir}/udp_receiver.cpp
-)
+add_subdirectory(../pose_send_receive ./pose_send_receive)
 
 include_directories(
     ${UdpSourceDir}
@@ -36,4 +31,5 @@ target_link_libraries(
     ${PROJECT_NAME}
     rpc
     AirLib
+    pose_receive_udp
 )
