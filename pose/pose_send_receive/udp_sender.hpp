@@ -10,7 +10,6 @@
 #define UDP_SENDER_H
 
 
-// TODO: design as a virtual class: PoseSender
 class UDPSender : public PoseSender {       // The class
     public:             // Access specifier
         UDPSender (std::string host, unsigned short int dest_port);  // Constructor
