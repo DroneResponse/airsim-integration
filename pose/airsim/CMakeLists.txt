@@ -1,35 +1,8 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(receive_drone_pose)
-
-if (NOT DEFINED ENV{AIRSIM_ROOT})
-    message(FATAL_ERROR "set the env variable AIRSIM_ROOT to the AirSim install directory")
-else()
-    message(STATUS "AIRSIM_ROOT=" $ENV{AIRSIM_ROOT})
-endif()
-
-set(AIRSIM_ROOT $ENV{AIRSIM_ROOT})
 
 set (CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(../pose_send_receive ./pose_send_receive)
-
-include_directories(
-    ${UdpSourceDir}
-    ${AIRSIM_ROOT}/AirLib/deps/eigen3
-    ${AIRSIM_ROOT}/AirLib/deps/rpclib/include
-    ${AIRSIM_ROOT}/AirLib/include
-)
-
-link_directories(
-    ${AIRSIM_ROOT}/build_release/output/lib
-)
-
-add_executable(${PROJECT_NAME} src/receive_drone_pose.cpp ${UdpSourceFiles})
-
-target_link_libraries(
-    ${PROJECT_NAME}
-    rpc
-    AirLib
-    pose_receive_udp
-)
+add_subdirectory(receive_drone_pose)
