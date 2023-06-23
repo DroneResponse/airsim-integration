@@ -13,6 +13,7 @@ STRICT_MODE_ON
 #include "vehicles/multirotor/api/MultirotorRpcLibClient.hpp"
 #include "Eigen/Dense"
 
+#include "airsim_pose.hpp"
 #include "pose.hpp"
 #include "udp_receiver.hpp"
 
@@ -92,13 +93,13 @@ static msr::airlib::Quaternionr remove_roll(msr::airlib::Quaternionr orientation
 
 /**
  * sets drone pose in airsim to gazebo drone pose
- * @param airsim_client reference to airsim client
+ * @param vehicle_interface reference to vehicle interface
  * @param pose_message reference to a pose message
  * @param mutex_pose_message mutex to lock access to provided pose message when reading
  * @param roll_override this does nothing, but is added for common template
 */
 void set_drone_pose(
-    msr::airlib::MultirotorRpcLibClient &airsim_client,
+    SimulatorInterface::AirSimPose &vehicle_interface,
     PoseTransfer::PoseMessage &pose_message,
     std::mutex &mutex_pose_message,
     bool roll_override
@@ -107,22 +108,9 @@ void set_drone_pose(
     while(1) {
         mutex_pose_message.lock();
         if (pose_message.message_counter > msg_count) {
-            msr::airlib::Vector3r drone_position(
-                (float) pose_message.drone.x,
-                (float) -pose_message.drone.y,
-                (float) -pose_message.drone.z
-            );
-            msr::airlib::Quaternionr drone_orientation(
-                (float) pose_message.drone.w,
-                (float) pose_message.drone.xi,
-                (float) -pose_message.drone.yj,
-                (float) -pose_message.drone.zk
-            );
             
-            airsim_client.simSetVehiclePose(
-                msr::airlib::Pose(drone_position, drone_orientation),
-                true
-            );
+            vehicle_interface.set_vehicle_pose(pose_message.drone, "");
+
         }
         msg_count = pose_message.message_counter;
         mutex_pose_message.unlock();
@@ -200,7 +188,7 @@ int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
     bool roll_override = false;
     void (*drone_pose_setter)(
-        msr::airlib::MultirotorRpcLibClient&,
+        SimulatorInterface::AirSimPose&,
         PoseTransfer::PoseMessage&,
         std::mutex&,
         bool
@@ -215,19 +203,19 @@ int main(int argc, char** argv) {
                 std::cerr << "Trailing characters after port: " << argv[i + 1] << '\n';
             }
         }
-        if (strcmp(argv[i], "-c") == 0) {
-            drone_pose_setter = &set_drone_pose_as_camera_pose;
-        }
+        // if (strcmp(argv[i], "-c") == 0) {
+        //     drone_pose_setter = &set_drone_pose_as_camera_pose;
+        // }
         if (strcmp(argv[i], "-r") == 0) {
             roll_override = true;
         }
     }
 
-    if (drone_pose_setter == &set_drone_pose_as_camera_pose) {
-        std::cout << "Drone pose will be set to global gimbal camera pose\n";
-    } else {
-        std::cout << "Drone pose will be set to global drone pose\n";
-    }
+    // if (drone_pose_setter == &set_drone_pose_as_camera_pose) {
+    //     std::cout << "Drone pose will be set to global gimbal camera pose\n";
+    // } else {
+    //     std::cout << "Drone pose will be set to global drone pose\n";
+    // }
 
     if (roll_override) {
         std::cout << "Camera roll will be artifically removed\n";
@@ -237,6 +225,8 @@ int main(int argc, char** argv) {
 
     msr::airlib::MultirotorRpcLibClient airsim_client;
     airsim_client.confirmConnection();
+
+    SimulatorInterface::AirSimPose vehicle_interface(&airsim_client);
 
     UDPReceiver udp_receiver(listener_port);
     PoseTransfer::PoseMessage pose_message;
@@ -254,7 +244,7 @@ int main(int argc, char** argv) {
     std::thread thread_print_pose(print_pose, std::ref(pose_message), std::ref(mutex_pose_message));
     std::thread thread_set_airsim_pose(
         *drone_pose_setter,
-        std::ref(airsim_client),
+        std::ref(vehicle_interface),
         std::ref(pose_message),
         std::ref(mutex_pose_message),
         roll_override
