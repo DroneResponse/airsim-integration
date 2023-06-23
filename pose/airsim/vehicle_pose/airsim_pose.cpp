@@ -10,6 +10,8 @@ AirSimPose::AirSimPose(void *sim_client) : VehiclePose(sim_client) {
     this->airsim_client = (msr::airlib::MultirotorRpcLibClient*) sim_client;
 };
 
+AirSimPose::~AirSimPose() {};
+
 void AirSimPose::spawn_vehicle(std::string vehicle_id) {
     return;
 };
