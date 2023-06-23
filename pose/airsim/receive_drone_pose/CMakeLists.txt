@@ -18,7 +18,7 @@ link_directories(
     ${AIRSIM_ROOT}/build_release/output/lib
 )
 
-add_executable(receive_drone_pose receive_drone_pose.cpp)
+add_executable(receive_drone_pose receive_drone_pose.cpp pose_handlers.cpp)
 
 target_link_libraries(
     receive_drone_pose
@@ -27,4 +27,4 @@ target_link_libraries(
     airsim_pose
     pose_receive_udp
 )
-
+    

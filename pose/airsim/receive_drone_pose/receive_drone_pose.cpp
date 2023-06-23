@@ -16,6 +16,7 @@ STRICT_MODE_ON
 #include "airsim_pose.hpp"
 #include "pose.hpp"
 #include "udp_receiver.hpp"
+#include "pose_handlers.hpp"
 
 
 /**
@@ -92,35 +93,6 @@ static msr::airlib::Quaternionr remove_roll(msr::airlib::Quaternionr orientation
 
 
 /**
- * sets drone pose in airsim to gazebo drone pose
- * @param vehicle_interface reference to vehicle interface
- * @param pose_message reference to a pose message
- * @param mutex_pose_message mutex to lock access to provided pose message when reading
- * @param roll_override this does nothing, but is added for common template
-*/
-void set_drone_pose(
-    SimulatorInterface::AirSimPose &vehicle_interface,
-    PoseTransfer::PoseMessage &pose_message,
-    std::mutex &mutex_pose_message,
-    bool roll_override
-) {
-    uint64_t msg_count = 0;
-    while(1) {
-        mutex_pose_message.lock();
-        if (pose_message.message_counter > msg_count) {
-            
-            vehicle_interface.set_vehicle_pose(pose_message.drone, "");
-
-        }
-        msg_count = pose_message.message_counter;
-        mutex_pose_message.unlock();
-        // update at ~200hz
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    }
-}
-
-
-/**
  * sets drone pose in airsim to gazebo gimbal camera pose
  * @param airsim_client reference to airsim client
  * @param pose_message reference to a pose message
@@ -190,9 +162,8 @@ int main(int argc, char** argv) {
     void (*drone_pose_setter)(
         SimulatorInterface::AirSimPose&,
         PoseTransfer::PoseMessage&,
-        std::mutex&,
-        bool
-    ) = &set_drone_pose;
+        std::mutex&
+    ) = &PoseHandlers::set_drone_pose;
 
     for (int i=0; i < argc; i++) {
         if (strcmp(argv[i], "-p") == 0) {
@@ -246,8 +217,7 @@ int main(int argc, char** argv) {
         *drone_pose_setter,
         std::ref(vehicle_interface),
         std::ref(pose_message),
-        std::ref(mutex_pose_message),
-        roll_override
+        std::ref(mutex_pose_message)
     );
 
     thread_receiver.join();
