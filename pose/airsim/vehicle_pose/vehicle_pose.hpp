@@ -1,6 +1,6 @@
 #include <string>
 
-#include "pose.h"
+#include "pose.hpp"
 
 #ifndef VEHICLE_POSE_H
 #define VEHICLE_POSE_H
@@ -17,14 +17,14 @@ namespace SimulatorInterface {
             /** Spawns a new vehicle with the provided unique id
              * @param vehicle_id unique vehicle id within a simulation instance
             */
-            virtual spawn_vehicle(std::string vehicle_id)
+            virtual void spawn_vehicle(std::string vehicle_id) {};
             /** updates the vehicle pose via a simulator client for a given unique vehicle id
              * @param pose pose to be set
              * @param vehicle_id unique id of a vehicle within the simulation
             */
-            virtual set_vehicle_pose(PoseTransfer::Pose pose, std::string vehicle_id) {};
+            virtual void set_vehicle_pose(PoseTransfer::Pose pose, std::string vehicle_id) {};
         private:
-            void *sim_client
+            void *sim_client;
     };
 }
 
