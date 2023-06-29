@@ -30,10 +30,30 @@ link_directories(
     ${AIRSIM_ROOT}/build_release/output/lib
 )
 
+if(WIN32)
+    include_directories(
+        "${AIRSIM_ROOT}/AirLib/include"
+
+    )
+    link_directories(
+        "${AIRSIM_ROOT}/AirLib/lib/x64/Release"
+    )
+    
+endif()
+
 add_executable(${PROJECT_NAME} src/receive_drone_pose.cpp ${UdpSourceFiles})
 
-target_link_libraries(
-    ${PROJECT_NAME}
-    rpc
-    AirLib
-)
+if (WIN32)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE ${AIRSIM_ROOT}/AirLib/lib/x64/Release/AirLib.lib
+        PRIVATE ${AIRSIM_ROOT}/AirLib/deps/rpclib/lib/x64/Release/rpc.lib
+        PRIVATE ${AIRSIM_ROOT}/AirLib/deps/MavLinkCom/lib/x64/Release/MavLinkCom.lib
+    )
+else()
+    target_link_libraries(
+        ${PROJECT_NAME}
+        rpc
+        AirLib
+    )
+endif()
