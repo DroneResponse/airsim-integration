@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
     bool roll_override = false;
     void (*drone_pose_setter)(
-        SimulatorInterface::AirSimPose&,
+        SimulatorInterface::VehiclePose&,
         PoseTransfer::PoseMessage&,
         std::mutex&
     ) = &PoseHandlers::set_drone_pose;

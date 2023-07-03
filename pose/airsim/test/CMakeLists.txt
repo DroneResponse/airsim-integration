@@ -14,13 +14,12 @@ FetchContent_MakeAvailable(googletest)
 # add any additional test files as sources
 add_executable(
     test_all
-    test_receive_drone_pose.cpp
+    test_pose_handlers.cpp
 )
 
 target_link_libraries(
     test_all
-    receive_drone_pose
-    pose_send_udp
+    pose_handlers
     GTest::gtest_main
     GTest::gtest
     GTest::gmock

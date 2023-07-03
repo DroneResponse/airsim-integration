@@ -1,8 +1,10 @@
+#include <thread>
+
 #include "pose_handlers.hpp"
 
 
 void PoseHandlers::set_drone_pose(
-    SimulatorInterface::AirSimPose &vehicle_interface,
+    SimulatorInterface::VehiclePose &vehicle_interface,
     PoseTransfer::PoseMessage &pose_message,
     std::mutex &mutex_pose_message
 ) {
