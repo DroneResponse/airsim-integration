@@ -160,9 +160,10 @@ int main(int argc, char** argv) {
     unsigned short int listener_port = 50000;
     bool roll_override = false;
     void (*drone_pose_setter)(
-        SimulatorInterface::VehiclePose&,
-        PoseTransfer::PoseMessage&,
-        std::mutex&
+        SimulatorInterface::VehiclePose*,
+        PoseTransfer::PoseMessage*,
+        std::mutex*,
+        bool*
     ) = &PoseHandlers::set_drone_pose;
 
     for (int i=0; i < argc; i++) {
@@ -205,6 +206,9 @@ int main(int argc, char** argv) {
 
     std::mutex mutex_pose_message;
 
+    // could change to false to stop all threads with certain signals rather than ctrl+c?
+    bool continue_processing_messages = true;
+
     // pass by ref inputs must be wrapped in std::ref() within thread constructor
     std::thread thread_receiver(
         &UDPReceiver::listen_pose_message,
@@ -215,9 +219,10 @@ int main(int argc, char** argv) {
     std::thread thread_print_pose(print_pose, std::ref(pose_message), std::ref(mutex_pose_message));
     std::thread thread_set_airsim_pose(
         *drone_pose_setter,
-        std::ref(vehicle_interface),
-        std::ref(pose_message),
-        std::ref(mutex_pose_message)
+        &vehicle_interface,
+        &pose_message,
+        &mutex_pose_message,
+        &continue_processing_messages
     );
 
     thread_receiver.join();
