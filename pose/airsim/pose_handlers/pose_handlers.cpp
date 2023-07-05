@@ -1,4 +1,6 @@
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "pose_handlers.hpp"
 
@@ -23,4 +25,22 @@ void PoseHandlers::set_drone_pose(
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
     while(*exit_flag);
+}
+
+
+void PoseHandlers::spawn_unique_drone(
+    SimulatorInterface::VehiclePose *vehicle_interface,
+    uint16_t drone_id
+) {
+    static std::vector<uint16_t> unique_drones;
+
+    // if drone_id not found
+    if(std::find(
+        unique_drones.begin(),
+        unique_drones.end(),
+        drone_id) == unique_drones.end()
+    ) {
+        unique_drones.push_back(drone_id);
+        vehicle_interface->spawn_vehicle(std::to_string(drone_id));
+    }
 }

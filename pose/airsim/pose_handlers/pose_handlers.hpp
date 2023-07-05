@@ -1,3 +1,6 @@
+#ifndef POSE_HANDLERS_H
+#define POSE_HANDLERS_H
+
 #include <mutex>
 
 #include "vehicle_pose.hpp"
@@ -19,4 +22,16 @@ namespace PoseHandlers {
         bool *exit_flag
     );
 
+
+    /**
+     * spawns a new drone if a new unique identifier is passed
+     * @param vehicle_interface pointer to vehicle interface
+     * @param drone_id unique vehicle identifier 
+    */
+    void spawn_unique_drone (
+        SimulatorInterface::VehiclePose *vehicle_interface,
+        uint16_t drone_id
+    );
 }
+
+#endif
