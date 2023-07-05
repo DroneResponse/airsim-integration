@@ -45,8 +45,8 @@ void PoseHandlers::set_drone_pose(
                 pose_message->drone,
                 std::to_string(pose_message->drone_id)
             );
+            msg_count = pose_message->message_counter;
         }
-        msg_count = pose_message->message_counter;
         mutex_pose_message->unlock();
         // update at ~200hz
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
