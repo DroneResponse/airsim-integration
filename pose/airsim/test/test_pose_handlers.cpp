@@ -128,7 +128,36 @@ TEST(TestSetDronePose, MultiDrone) {
     EXPECT_EQ(actual_spawn_drone_id_1, "1");
 }
 
-
+// TODO - failing - need to figure out how to loop on msg_count without looping infinitely
 TEST(TestSetDronePose, MsgOutOfOrder) {
-    return;
+    PoseTransfer::PoseMessage mock_pose_message_0_a {
+        .message_counter = 3,
+        .drone_id = 0
+    };
+    // second message should not be called as older than first message
+    PoseTransfer::PoseMessage mock_pose_message_0_b {
+        .message_counter = 1,
+        .drone_id = 0
+    };
+
+    MockVehiclePose mock_vehicle_interface;
+    std::mutex mock_mutex_pose_message;
+    // exit immediately after one pass for test
+    bool exit_flag = 0;
+
+    EXPECT_CALL(mock_vehicle_interface, set_vehicle_pose).Times(1);
+    EXPECT_CALL(mock_vehicle_interface, spawn_vehicle).Times(1);
+
+    PoseHandlers::set_drone_pose(
+        &mock_vehicle_interface,
+        &mock_pose_message_0_a,
+        &mock_mutex_pose_message,
+        &exit_flag
+    );
+    PoseHandlers::set_drone_pose(
+        &mock_vehicle_interface,
+        &mock_pose_message_0_b,
+        &mock_mutex_pose_message,
+        &exit_flag
+    );
 }
