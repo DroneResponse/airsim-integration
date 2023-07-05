@@ -14,10 +14,14 @@ void PoseHandlers::set_drone_pose(
     uint64_t msg_count = 0;
     do {
         mutex_pose_message->lock();
-        if (pose_message->message_counter > msg_count) {
-            
-            vehicle_interface->set_vehicle_pose(pose_message->drone, "");
 
+        PoseHandlers::spawn_unique_drone(vehicle_interface, pose_message->drone_id);
+
+        if (pose_message->message_counter > msg_count) {
+            vehicle_interface->set_vehicle_pose(
+                pose_message->drone,
+                std::to_string(pose_message->drone_id)
+            );
         }
         msg_count = pose_message->message_counter;
         mutex_pose_message->unlock();
