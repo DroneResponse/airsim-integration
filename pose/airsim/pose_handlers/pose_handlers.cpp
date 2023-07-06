@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -26,6 +27,7 @@ void spawn_unique_drone(
     ) {
         unique_drones.push_back(drone_id);
         vehicle_interface->spawn_vehicle(std::to_string(drone_id), initial_pose);
+        std::cout << "New drone spawned with id: " + std::to_string(drone_id) << std::endl;
     }
 }
 
@@ -41,7 +43,7 @@ void PoseHandlers::set_drone_pose(
         mutex_pose_message->lock();
         // printf("message_counter: %s\n", std::to_string(pose_message->message_counter).c_str());
         spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
-
+        // std::cout << "Pose sent for: " + std::to_string(pose_message->drone_id) << std::endl;
         if (pose_message->message_counter > msg_count) {
             vehicle_interface->set_vehicle_pose(
                 pose_message->drone,
