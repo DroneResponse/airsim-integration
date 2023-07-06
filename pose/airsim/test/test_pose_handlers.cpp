@@ -83,18 +83,22 @@ TEST(TestSetDronePose, MultiDrone) {
 
     std::string actual_spawn_drone_id_0;
     std::string actual_spawn_drone_id_1;
+    PoseTransfer::Pose actual_spawn_drone_pose_call_0;
+    PoseTransfer::Pose actual_spawn_drone_pose_call_1;
 
     {
         InSequence s;
 
         EXPECT_CALL(mock_vehicle_interface, spawn_vehicle).WillOnce(
             DoAll(
-                SaveArg<0>(&actual_spawn_drone_id_0)
+                SaveArg<0>(&actual_spawn_drone_id_0),
+                SaveArg<1>(&actual_spawn_drone_pose_call_0)
             )
         );
         EXPECT_CALL(mock_vehicle_interface, spawn_vehicle).WillOnce(
             DoAll(
-                SaveArg<0>(&actual_spawn_drone_id_1)
+                SaveArg<0>(&actual_spawn_drone_id_1),
+                SaveArg<1>(&actual_spawn_drone_pose_call_1)
             )
         );
     }
@@ -129,6 +133,8 @@ TEST(TestSetDronePose, MultiDrone) {
 
     EXPECT_EQ(actual_spawn_drone_id_0, "0");
     EXPECT_EQ(actual_spawn_drone_id_1, "1");
+    EXPECT_EQ(actual_spawn_drone_pose_call_0.x, 4);
+    EXPECT_EQ(actual_spawn_drone_pose_call_1.x, 17);
 }
 
 

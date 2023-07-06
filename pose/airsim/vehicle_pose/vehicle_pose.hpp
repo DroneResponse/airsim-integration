@@ -16,8 +16,9 @@ namespace SimulatorInterface {
             virtual ~VehiclePose() {};
             /** Spawns a new vehicle with the provided unique id
              * @param vehicle_id unique vehicle id within a simulation instance
+             * @param pose initial pose when spawned
             */
-            virtual void spawn_vehicle(std::string vehicle_id) {};
+            virtual void spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) {};
             /** updates the vehicle pose via a simulator client for a given unique vehicle id
              * @param pose pose to be set
              * @param vehicle_id unique id of a vehicle within the simulation

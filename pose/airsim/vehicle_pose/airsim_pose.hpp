@@ -16,8 +16,9 @@ namespace SimulatorInterface {
             ~AirSimPose();
             /** Spawns a new vehicle with the provided unique id
              * @param vehicle_id unique vehicle id within a simulation instance
+             * @param pose initial pose when spawned
             */
-            void spawn_vehicle(std::string vehicle_id);
+            void spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose);
             /** updates the vehicle pose via the AirSim client for a given unique vehicle id
              * @param pose pose to be set
              * @param vehicle_id unique id of a vehicle within the simulation

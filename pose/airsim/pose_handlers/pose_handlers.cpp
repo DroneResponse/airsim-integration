@@ -8,11 +8,13 @@
 /**
  * spawns a new drone if a new unique identifier is passed
  * @param vehicle_interface pointer to vehicle interface
- * @param drone_id unique vehicle identifier 
+ * @param drone_id unique vehicle identifier
+ * @param initial_pose initial pose when spawned
 */
 void spawn_unique_drone(
     SimulatorInterface::VehiclePose *vehicle_interface,
-    uint16_t drone_id
+    uint16_t drone_id,
+    PoseTransfer::Pose initial_pose
 ) {
     // because static, will have interactions between tests importing the same translation unit
     static std::vector<uint16_t> unique_drones;
@@ -23,7 +25,7 @@ void spawn_unique_drone(
         drone_id) == unique_drones.end()
     ) {
         unique_drones.push_back(drone_id);
-        vehicle_interface->spawn_vehicle(std::to_string(drone_id));
+        vehicle_interface->spawn_vehicle(std::to_string(drone_id), initial_pose);
     }
 }
 
@@ -38,7 +40,7 @@ void PoseHandlers::set_drone_pose(
     do {
         mutex_pose_message->lock();
         // printf("message_counter: %s\n", std::to_string(pose_message->message_counter).c_str());
-        spawn_unique_drone(vehicle_interface, pose_message->drone_id);
+        spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
 
         if (pose_message->message_counter > msg_count) {
             vehicle_interface->set_vehicle_pose(

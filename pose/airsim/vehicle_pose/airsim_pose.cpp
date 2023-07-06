@@ -12,7 +12,7 @@ AirSimPose::AirSimPose(void *sim_client) : VehiclePose(sim_client) {
 
 AirSimPose::~AirSimPose() {};
 
-void AirSimPose::spawn_vehicle(std::string vehicle_id) {
+void AirSimPose::spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) {
     return;
 };
 
