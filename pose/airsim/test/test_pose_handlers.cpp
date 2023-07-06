@@ -1,4 +1,5 @@
 #include <string>
+#include <thread>
 
 #include <gtest/gtest.h>
 
@@ -98,6 +99,8 @@ TEST(TestSetDronePose, MultiDrone) {
         );
     }
 
+
+    // call the function three independent times with exit_flag = 0 to mimic three loops
     PoseHandlers::set_drone_pose(
         &mock_vehicle_interface,
         &mock_pose_message_0_a,
@@ -128,36 +131,45 @@ TEST(TestSetDronePose, MultiDrone) {
     EXPECT_EQ(actual_spawn_drone_id_1, "1");
 }
 
-// TODO - failing - need to figure out how to loop on msg_count without looping infinitely
+
 TEST(TestSetDronePose, MsgOutOfOrder) {
     PoseTransfer::PoseMessage mock_pose_message_0_a {
         .message_counter = 3,
-        .drone_id = 0
+        .drone_id = 10
     };
     // second message should not be called as older than first message
     PoseTransfer::PoseMessage mock_pose_message_0_b {
         .message_counter = 1,
-        .drone_id = 0
+        .drone_id = 10
     };
 
     MockVehiclePose mock_vehicle_interface;
     std::mutex mock_mutex_pose_message;
     // exit immediately after one pass for test
-    bool exit_flag = 0;
+    bool exit_flag = 1;
 
     EXPECT_CALL(mock_vehicle_interface, set_vehicle_pose).Times(1);
     EXPECT_CALL(mock_vehicle_interface, spawn_vehicle).Times(1);
 
-    PoseHandlers::set_drone_pose(
+    PoseTransfer::PoseMessage *mock_message_pointer = &mock_pose_message_0_a;
+    
+    // called in separate thread because msg_count must be set each time function is called
+    std::thread thread_set_drone_pose(
+        PoseHandlers::set_drone_pose,
         &mock_vehicle_interface,
-        &mock_pose_message_0_a,
+        mock_message_pointer,
         &mock_mutex_pose_message,
         &exit_flag
     );
-    PoseHandlers::set_drone_pose(
-        &mock_vehicle_interface,
-        &mock_pose_message_0_b,
-        &mock_mutex_pose_message,
-        &exit_flag
-    );
+
+    // allow time for message_0_a to process
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    mock_mutex_pose_message.lock();
+    *mock_message_pointer = mock_pose_message_0_b;
+    mock_mutex_pose_message.unlock();
+    // allow time for message_0_b to process
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    exit_flag = 0;
+    thread_set_drone_pose.join();
 }
