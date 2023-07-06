@@ -104,6 +104,7 @@ void UDPReceiver::udp_message_to_pose(
     pose_message->message_counter = net_bits::ntoh64(udp_pose_message.message_counter);
     pose_message->drone = drone_pose;
     pose_message->camera = camera_pose;
+    pose_message->drone_id = ntohs(udp_pose_message.drone_id);
 }
 
 
