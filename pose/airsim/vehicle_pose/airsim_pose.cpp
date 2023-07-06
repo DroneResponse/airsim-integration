@@ -10,14 +10,33 @@ AirSimPose::AirSimPose(void *sim_client) : VehiclePose(sim_client) {
     this->airsim_client = (msr::airlib::MultirotorRpcLibClient*) sim_client;
 };
 
+
 AirSimPose::~AirSimPose() {};
 
+
 void AirSimPose::spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) {
-    return;
+    msr::airlib::Vector3r vehicle_position(
+        (float) pose.x,
+        (float) pose.y,
+        (float) pose.z
+    );
+    msr::airlib::Quaternionr vehicle_orientation(
+        (float) pose.w,
+        (float) pose.xi,
+        (float) -pose.yj,
+        (float) -pose.zk
+    );
+
+    this->airsim_client->simAddVehicle(
+        "drone_" + vehicle_id,
+        "SimpleFlight",
+        msr::airlib::Pose(vehicle_position, vehicle_orientation)
+    );
 };
 
+
 void AirSimPose::set_vehicle_pose(PoseTransfer::Pose pose, std::string vehicle_id) {
-    msr::airlib::Vector3r vehicle_position (
+    msr::airlib::Vector3r vehicle_position(
         (float) pose.x,
         (float) pose.y,
         (float) pose.z
