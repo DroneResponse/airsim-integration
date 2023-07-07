@@ -27,12 +27,12 @@ STRICT_MODE_ON
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     while (1) {
         mutex_pose_message.lock();
+        (std::cout << "drone id: " + std::to_string(pose_message.drone_id) << std::endl);
         (std::cout << "drone position received: " << pose_message.drone.x << ", " << pose_message.drone.y
         << ", " << pose_message.drone.z << std::endl);
         (std::cout << "drone orientation received: " << pose_message.drone.w << ", "
         << pose_message.drone.xi << ", " << pose_message.drone.yj << ", "
         << pose_message.drone.zk << std::endl);
-        mutex_pose_message.unlock();
         (std::cout << "camera orientation received: " << pose_message.camera.w << ", "
         << pose_message.camera.xi << ", " << pose_message.camera.yj << ", "
         << pose_message.camera.zk << "\n" << std::endl);

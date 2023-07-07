@@ -27,7 +27,7 @@ void spawn_unique_drone(
     ) {
         unique_drones.push_back(drone_id);
         vehicle_interface->spawn_vehicle(std::to_string(drone_id), initial_pose);
-        std::cout << "New drone spawned with id: " + std::to_string(drone_id) << std::endl;
+        std::cout << "New drone spawned with id: " + std::to_string(drone_id) + "\n" << std::endl;
     }
 }
 
