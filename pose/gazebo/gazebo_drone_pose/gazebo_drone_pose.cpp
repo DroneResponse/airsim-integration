@@ -87,14 +87,21 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.zk = oz;
         }
 
-        if (drone_pose.x != 0 && camera_pose.x != 0) {
-            
+        // checking both drone and camera pose assigned values from gazebo messages before sending
+        if (count % MESSAGE_THROTTLE == 0) {
+            (std::cout << "Drone pose xi: " + std::to_string(drone_pose.xi) << 
+            ", Camera pose xi: " + std::to_string(camera_pose.xi));
+        }
+        if (drone_pose.xi != 0 && camera_pose.xi != 0) {
             PoseTransfer::PoseMessage pose_message {
                 .message_counter = (uint64_t) count,
                 .drone = drone_pose,
                 .camera = camera_pose,
                 .drone_id = this->droneIds[current_drone_name]
             };
+            if (count % MESSAGE_THROTTLE == 0) {
+                std::cout << "Drone name: " + current_drone_name << ", Drone id: " + std::to_string(pose_message.drone_id) << std::endl;
+            }
             // since all poses are grouped together for each drone within a message,
             // reset camera_pose and drone_pose to zeros after sending a message
             // all drone a poses, then all drone b poses, then all drone c poses, . . .
