@@ -21,8 +21,8 @@ GenerateCbLocalPose::~GenerateCbLocalPose() {};
 
 void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
     if (!this->droneIds.contains(droneName)) {
-        this->uniqueDroneCount++;
         this->droneIds[droneName] = uniqueDroneCount;
+        this->uniqueDroneCount++;
     }
 }
 
