@@ -33,10 +33,24 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     std::cout << std::setprecision(3);
     static int count = 0;
 
-    PoseTransfer::Pose drone_pose;
-    PoseTransfer::Pose camera_pose;
-    memset(&drone_pose, 0, sizeof(drone_pose));
-    memset(&camera_pose, 0, sizeof(camera_pose));
+    PoseTransfer::Pose drone_pose = (PoseTransfer::Pose) {
+        .x = -1.0,
+        .y = -1.0,
+        .z = -1.0,
+        .w = -1.0,
+        .xi = -1.0,
+        .yj = -1.0,
+        .zk = -1.0
+    };
+    PoseTransfer::Pose camera_pose = (PoseTransfer::Pose) {
+        .x = -1.0,
+        .y = -1.0,
+        .z = -1.0,
+        .w = -1.0,
+        .xi = -1.0,
+        .yj = -1.0,
+        .zk = -1.0
+    };
     std::string current_drone_name;
 
     for (int i = 0; i < msg->pose_size(); i++) {
@@ -47,19 +61,19 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         auto ox = msg->pose(i).orientation().x();
         auto oy = msg->pose(i).orientation().y();
         auto oz = msg->pose(i).orientation().z();
-        if (count % MESSAGE_THROTTLE == 0) {
-            std::cout << "local (" << std::setw(3) << i << ") ";
-            std::cout << std::left << std::setw(32) << msg->pose(i).name();
-            std::cout << " x: " << std::right << std::setw(NWIDTH) << x;
-            std::cout << " y: " << std::right << std::setw(NWIDTH) << y;
-            std::cout << " z: " << std::right << std::setw(NWIDTH) << z;
+        // if (count % MESSAGE_THROTTLE == 0) {
+        //     std::cout << "local (" << std::setw(3) << i << ") ";
+        //     std::cout << std::left << std::setw(32) << msg->pose(i).name();
+        //     std::cout << " x: " << std::right << std::setw(NWIDTH) << x;
+        //     std::cout << " y: " << std::right << std::setw(NWIDTH) << y;
+        //     std::cout << " z: " << std::right << std::setw(NWIDTH) << z;
 
-            std::cout << " ow: " << std::right << std::setw(NWIDTH) << ow;
-            std::cout << " ox: " << std::right << std::setw(NWIDTH) << ox;
-            std::cout << " oy: " << std::right << std::setw(NWIDTH) << oy;
-            std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
-            std::cout << std::endl;
-        }
+        //     std::cout << " ow: " << std::right << std::setw(NWIDTH) << ow;
+        //     std::cout << " ox: " << std::right << std::setw(NWIDTH) << ox;
+        //     std::cout << " oy: " << std::right << std::setw(NWIDTH) << oy;
+        //     std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
+        //     std::cout << std::endl;
+        // }
     
         std::string msg_name = msg->pose(i).name();
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
@@ -74,6 +88,11 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             drone_pose.xi = ox;
             drone_pose.yj = oy;
             drone_pose.zk = oz;
+            if (count % MESSAGE_THROTTLE == 0) {
+                (std::cout << "Drone name: " + current_drone_name << 
+                ", Drone id: " + std::to_string(this->droneIds[current_drone_name]));
+                std::cout << ", Drone pose xi: " + std::to_string(drone_pose.xi) << std::endl;
+            }
         }
         else if (
             msg_name.substr(msg_name.find("::") + 2, std::string::npos) == "cgo3_camera_link"
@@ -85,29 +104,45 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.xi = ox;
             camera_pose.yj = oy;
             camera_pose.zk = oz;
+            if (count % MESSAGE_THROTTLE == 0) {
+                (std::cout << "Drone name: " + current_drone_name << 
+                ", Drone id: " + std::to_string(this->droneIds[current_drone_name]));
+                std::cout << ", Camera pose xi: " + std::to_string(camera_pose.xi) << std::endl;
+            }
         }
 
-        // checking both drone and camera pose assigned values from gazebo messages before sending
-        if (count % MESSAGE_THROTTLE == 0) {
-            (std::cout << "Drone pose xi: " + std::to_string(drone_pose.xi) << 
-            ", Camera pose xi: " + std::to_string(camera_pose.xi));
-        }
-        if (drone_pose.xi != 0 && camera_pose.xi != 0) {
+        // 0 doesn't work because initial state is zero for each drone, so using -1.0
+        // there may be a better value than -1.0, but even in the off chance xi for either the
+        // camera or drone is exactly -1.0, it will likely only be so momentarily
+        if (drone_pose.xi != -1.0 && camera_pose.xi != -1.0) {
             PoseTransfer::PoseMessage pose_message {
                 .message_counter = (uint64_t) count,
                 .drone = drone_pose,
                 .camera = camera_pose,
                 .drone_id = this->droneIds[current_drone_name]
             };
-            if (count % MESSAGE_THROTTLE == 0) {
-                std::cout << "Drone name: " + current_drone_name << ", Drone id: " + std::to_string(pose_message.drone_id) << std::endl;
-            }
             // since all poses are grouped together for each drone within a message,
-            // reset camera_pose and drone_pose to zeros after sending a message
+            // reset camera_pose and drone_pose to default values after sending a message
             // all drone a poses, then all drone b poses, then all drone c poses, . . .
             this->poseSender->send_pose_message(pose_message);
-            memset(&drone_pose, 0, sizeof(drone_pose));
-            memset(&camera_pose, 0, sizeof(camera_pose));
+            if (count % MESSAGE_THROTTLE == 0) {
+                std::cout << "Sent pose for: " << pose_message.drone_id << std::endl;
+            }
+            drone_pose.x = -1.0;
+            drone_pose.y = -1.0;
+            drone_pose.z = -1.0;
+            drone_pose.w = -1.0;
+            drone_pose.xi = -1.0;
+            drone_pose.yj = -1.0;
+            drone_pose.zk = -1.0;
+
+            camera_pose.x = -1.0;
+            camera_pose.y = -1.0;
+            camera_pose.z = -1.0;
+            camera_pose.w = -1.0;
+            camera_pose.xi = -1.0;
+            camera_pose.yj = -1.0;
+            camera_pose.zk = -1.0;
         }
     }
 
