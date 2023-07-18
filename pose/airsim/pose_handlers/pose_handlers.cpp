@@ -5,7 +5,6 @@
 
 #include "pose_handlers.hpp"
 
-
 /**
  * spawns a new drone if a new unique identifier is passed
  * @param vehicle_interface pointer to vehicle interface
@@ -42,7 +41,9 @@ void PoseHandlers::set_drone_pose(
     do {
         mutex_pose_message->lock();
         // printf("message_counter: %s\n", std::to_string(pose_message->message_counter).c_str());
-        spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
+        if (pose_message->message_counter != 0) {
+            spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
+        }
         // std::cout << "Pose sent for: " + std::to_string(pose_message->drone_id) << std::endl;
         if (pose_message->message_counter > msg_count) {
             vehicle_interface->set_vehicle_pose(
