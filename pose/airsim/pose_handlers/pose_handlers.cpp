@@ -19,6 +19,9 @@ void spawn_unique_drone(
     // because static, will have interactions between tests importing the same translation unit
     static std::vector<uint16_t> unique_drones;
     // if drone_id not found
+    // todo: see if can check for existing vehicle_ids != "" and add them to unique drones if exist
+    // this should allow the receiver program to restart without having to restart the airsim simulation
+    // since can't spawn an already existing drone
     if(std::find(
         unique_drones.begin(),
         unique_drones.end(),
