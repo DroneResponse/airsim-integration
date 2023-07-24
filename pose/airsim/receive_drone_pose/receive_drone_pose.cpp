@@ -25,20 +25,45 @@ STRICT_MODE_ON
  * @param mutex_pose_message mutex to lock access to provided pose message when reading
 */
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
+    std::vector<uint16_t> printed_drone_ids;
+    uint repeat_count = 0;
+
     while (1) {
         mutex_pose_message.lock();
-        (std::cout << "drone id: " + std::to_string(pose_message.drone_id) << std::endl);
-        (std::cout << "drone position received: " << pose_message.drone.x << ", " << pose_message.drone.y
-        << ", " << pose_message.drone.z << std::endl);
-        (std::cout << "drone orientation received: " << pose_message.drone.w << ", "
-        << pose_message.drone.xi << ", " << pose_message.drone.yj << ", "
-        << pose_message.drone.zk << std::endl);
-        (std::cout << "camera orientation received: " << pose_message.camera.w << ", "
-        << pose_message.camera.xi << ", " << pose_message.camera.yj << ", "
-        << pose_message.camera.zk << "\n" << std::endl);
+        if (std::find(
+                printed_drone_ids.begin(),
+                printed_drone_ids.end(),
+                pose_message.drone_id
+            ) == printed_drone_ids.end()
+        )  {
+            (std::cout << "drone id: " + std::to_string(pose_message.drone_id) << std::endl);
+            (std::cout << "drone position received: " << pose_message.drone.x << ", " << pose_message.drone.y
+            << ", " << pose_message.drone.z << std::endl);
+            (std::cout << "drone orientation received: " << pose_message.drone.w << ", "
+            << pose_message.drone.xi << ", " << pose_message.drone.yj << ", "
+            << pose_message.drone.zk << std::endl);
+            (std::cout << "camera orientation received: " << pose_message.camera.w << ", "
+            << pose_message.camera.xi << ", " << pose_message.camera.yj << ", "
+            << pose_message.camera.zk << "\n" << std::endl);
+            
+            printed_drone_ids.push_back(pose_message.drone_id);
+        }
+        else {
+            repeat_count++;
+        }
         mutex_pose_message.unlock();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        
+        // want a better solution here, but needed a suffciently high number such that the same
+        // drone id doesn't constantly have its pose printed
+        // suspect the cause is that all the drone poses arrive in quick succession, then there is 
+        // a pause before the next set of poses arrives. So the latest pose is always the
+        // pose_message unless some additional orchestration is added
+        if (repeat_count > 1000000) {
+            printed_drone_ids.clear();
+            repeat_count = 0;
+            std::cout << "\nAll drone poses->" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
     }
 }
 
