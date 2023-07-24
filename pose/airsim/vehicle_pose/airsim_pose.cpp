@@ -30,7 +30,7 @@ void AirSimPose::spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) 
     );
 
     this->airsim_client->simAddVehicle(
-        "drone_" + vehicle_id,
+        vehicle_id,
         "SimpleFlight",
         msr::airlib::Pose(vehicle_position, vehicle_orientation)
     );
