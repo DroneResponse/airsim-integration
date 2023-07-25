@@ -184,6 +184,6 @@ RUN mkdir -p /pose/gazebo/build
 WORKDIR /pose/gazebo/build
 RUN cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .. \
     && make \
-    && mv send_drone_pose /usr/local/bin
+    && mv ./send_drone_pose/send_drone_pose /usr/local/bin
 
 WORKDIR /
