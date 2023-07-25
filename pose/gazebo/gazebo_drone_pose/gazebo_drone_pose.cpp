@@ -91,7 +91,15 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             if (count % MESSAGE_THROTTLE == 0) {
                 (std::cout << "Drone name: " + current_drone_name << 
                 ", Drone id: " + std::to_string(this->droneIds[current_drone_name]));
-                std::cout << ", Drone pose xi: " + std::to_string(drone_pose.xi) << std::endl;
+                (std::cout << "\nDrone Position: " + 
+                std::to_string(drone_pose.x) + ", " +
+                std::to_string(drone_pose.y) + ", " +
+                std::to_string(drone_pose.z));
+                (std::cout << "\nDrone Orientation: " + 
+                std::to_string(drone_pose.w) + ", " +
+                std::to_string(drone_pose.xi) + ", " +
+                std::to_string(drone_pose.yj) + ", " +
+                std::to_string(drone_pose.zk));
             }
         }
         else if (
@@ -105,9 +113,14 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.yj = oy;
             camera_pose.zk = oz;
             if (count % MESSAGE_THROTTLE == 0) {
-                (std::cout << "Drone name: " + current_drone_name << 
-                ", Drone id: " + std::to_string(this->droneIds[current_drone_name]));
-                std::cout << ", Camera pose xi: " + std::to_string(camera_pose.xi) << std::endl;
+                // messages should be grouped together in sequence for each drone, so the following
+                // camera orientation is for the drone id associated with the drone position above
+                (std::cout << "\nCamera Orientation: " + 
+                std::to_string(camera_pose.w) + ", " +
+                std::to_string(camera_pose.xi) + ", " +
+                std::to_string(camera_pose.yj) + ", " +
+                std::to_string(camera_pose.zk)
+                << std::endl);
             }
         }
 
@@ -126,7 +139,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             // all drone a poses, then all drone b poses, then all drone c poses, . . .
             this->poseSender->send_pose_message(pose_message);
             if (count % MESSAGE_THROTTLE == 0) {
-                std::cout << "Sent pose for: " << pose_message.drone_id << std::endl;
+                std::cout << "Sent pose for drone id: " << pose_message.drone_id << std::endl;
             }
             drone_pose.x = -1.0;
             drone_pose.y = -1.0;
