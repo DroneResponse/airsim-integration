@@ -64,7 +64,7 @@ mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
 
-### Building the Pose Streamer
+## Building the Pose Streamer
 _Additional dependencies:_
 - cmake
 - [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
@@ -104,7 +104,7 @@ make test_all
 ```
 
 
-## Running
+## Running the Camera Streamer
 ### Airsim send - sends airsim stream from front-center drone camera
 After compiling from the build dir:
 ```bash
@@ -133,39 +133,50 @@ Port input is optional and will default to 5000.
 
 Video window should open and display at the resolution and frame rate that the sender is streaming.
 
-### Pose
-The gazebo pose sender and airsim pose receiver are two separate programs that communicate over UDP. This allows them to be run on separate machines or seperate containers. 
+## Running the Pose Streamer
+The gazebo pose sender and airsim pose receiver are two separate programs that communicate over UDP. This allows them to be run on separate machines or seperate containers. If multiple drones exist in the gazebo simulation, the same number of drones will be spawned in AirSim. Each drone gets a unique name and will only receive its relevant poses. 
 
 - An Airsim simulation must be started before starting the pose receiver so that the receiver successfully connects to the simulation's API
 - If utilizing camera pose, make sure to use the gazebo `typhoon_h480` drone that includes a camera on a gimbal and publishes the camera pose
 
-After compiling from the gazebo build dir:
+### Sender
+After compiling from the `gazebo/build` dir, cd into the `send_drone_pose` dir:
 ```bash
 ./send_drone_pose -p <port> -a <address>
 ```
 
 Port and address are optional and will default to `50000` and `127.0.0.1` respectively.
 
-After compiling from the airsim build dir:
+### Receiver
+After compiling from the `airsim/build` dir, cd into the `receive_drone_pose` dir:
 ```bash
-./receive_drone_pose -p <port> -c -r
+./receive_drone_pose -p <port>
 ```
 
 Port is optional and will default to `50000`
 
+<!-- TODO - REIMPLEMENT IN FUTURE PR (GH Issue #24)
 The optional `-c` flag indicates that the Airsim drone pose should be set to the gazebo typhoon_h480 gimbal camera pose. This will pose the Airsim drone in line with the camera pose in gazebo. Doing so essentially treats the Airsim drone as the gimbal camera.
 
 The optional `-r` flag will artificially override and remove any gimbal camera roll.
 
-No flag will set the Airsim drone pose to the gazebo drone's pose.
+No flag will set the Airsim drone pose to the gazebo drone's pose. -->
 
+### Unit Tests
+To run all unit tests for either the sender or receiver, navigate to the `/build/test` dir in the relavant parent directory. 
 
-## Running pose in docker
+```bash
+./test_all
+```
 
-The pose program runs in docker.
+The unit tests are built upon [googletest](https://google.github.io/googletest/). The googletest dependencies are [included directly](https://google.github.io/googletest/quickstart-cmake.html#set-up-a-project) from its git repo via the CMake `FetchContent` command. 
 
-When using this as part of `dr_onboard` you can start px4 in container will
-receive the gazebo messages and send them to AirSim
+To include additional test files, add them to the `add_executable` command in the `CMakeLists` under the relevant `test` directory. After doing so, all tests under the added will be built and run with the `make test_all` and `./build/test/test_all` commands.  
+
+### Running the Pose Sender in Docker
+
+When using this as part of `dr_onboard` you can start px4 and the included container will
+receive the gazebo messages and send them to AirSim.
 
 ```bash
 docker build . -t pose
