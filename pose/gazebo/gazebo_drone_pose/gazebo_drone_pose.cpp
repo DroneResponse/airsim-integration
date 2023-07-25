@@ -61,19 +61,6 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         auto ox = msg->pose(i).orientation().x();
         auto oy = msg->pose(i).orientation().y();
         auto oz = msg->pose(i).orientation().z();
-        // if (count % MESSAGE_THROTTLE == 0) {
-        //     std::cout << "local (" << std::setw(3) << i << ") ";
-        //     std::cout << std::left << std::setw(32) << msg->pose(i).name();
-        //     std::cout << " x: " << std::right << std::setw(NWIDTH) << x;
-        //     std::cout << " y: " << std::right << std::setw(NWIDTH) << y;
-        //     std::cout << " z: " << std::right << std::setw(NWIDTH) << z;
-
-        //     std::cout << " ow: " << std::right << std::setw(NWIDTH) << ow;
-        //     std::cout << " ox: " << std::right << std::setw(NWIDTH) << ox;
-        //     std::cout << " oy: " << std::right << std::setw(NWIDTH) << oy;
-        //     std::cout << " oz: " << std::right << std::setw(NWIDTH) << oz;
-        //     std::cout << std::endl;
-        // }
     
         std::string msg_name = msg->pose(i).name();
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
