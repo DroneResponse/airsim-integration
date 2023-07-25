@@ -43,11 +43,10 @@ void PoseHandlers::set_drone_pose(
     uint64_t msg_count = 0;
     do {
         mutex_pose_message->lock();
-        // printf("message_counter: %s\n", std::to_string(pose_message->message_counter).c_str());
         if (pose_message->message_counter != 0) {
             spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
         }
-        // std::cout << "Pose sent for: " + std::to_string(pose_message->drone_id) << std::endl;
+
         if (pose_message->message_counter > msg_count) {
             vehicle_interface->set_vehicle_pose(
                 pose_message->drone,
@@ -58,7 +57,6 @@ void PoseHandlers::set_drone_pose(
         mutex_pose_message->unlock();
         // update at ~200hz
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        // printf("exit_flag: %s\n", std::to_string(*exit_flag).c_str());
     }
     while(*exit_flag);
 }
