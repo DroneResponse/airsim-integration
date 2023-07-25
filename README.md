@@ -3,10 +3,9 @@ Provides programs to stream drone and camera poses from Gazebo to AirSim over UD
 
 ## Dependencies
 - [Airsim](https://microsoft.github.io/AirSim/) ([+Unreal Engine](https://www.unrealengine.com/en-US/download))
-- [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 - gcc / g++ compiler
 
-## Building
+## Building the Camera Streamer
 Note: when building on Mac via package configs, [gstreamer recommends](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig) the following environment variable updates are made:
 ```bash
 # Tell pkg-config where to find the .pc files
@@ -24,6 +23,7 @@ When building on Linux, you should be able to use a pre-existing installation of
 ### Airsim send
 _Additional dependencies:_
 - cmake
+- [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 
 Set required environment variable:
 - AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
@@ -41,7 +41,10 @@ make
 ```
 
 ### Jetson receive
-Used to test that video is being successfully streamed from airsim to a Nvidia Jetson device. Must be build on the Jetson as it uses Nvidia specific gstreamer libraries to interace with the Nvidia GPU. 
+Used to test that video is being successfully streamed from airsim to a Nvidia Jetson device. Must be build on the Jetson as it uses Nvidia specific gstreamer libraries to interace with the Nvidia GPU.
+
+_Additional dependencies:_
+- [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 
 ```bash
 # starting from the 'receive/jetson' dir
@@ -50,7 +53,10 @@ g++ ./src/udp-cam-receive-jetson.cpp -o ./build/udp-cam-receive-jetson `pkg-conf
 ```
 
 ### Local receive
-Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications. 
+Note: Only has been built using an Arm Mac to date. It may work on other Linux devices, but isn't guarunteed without modifications.
+
+_Additional dependencies:_
+- [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 
 ```bash
 # starting from 'receive/linux'
@@ -58,22 +64,43 @@ mkdir build
 g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
 ```
 
-### Pose
+### Building the Pose Streamer
 _Additional dependencies:_
 - cmake
 - [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
     - for Arm Mac's, must be [compiled using rosetta in X86 terminal](https://docs.px4.io/main/en/dev_setup/dev_env_mac.html#macos-development-environment)
     - the same X86 terminal will need to be used to compile gazebo send_drone_pose in this repo
 
-Set required environment variables:
-- AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
-
+_Gazebo Sender_
 ```bash
-# starting from 'gazebo' dir
+# starting from 'pose/gazebo' dir
 mkdir build
 cd build
-cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
+cmake ..
 make
+```
+
+To build unit tests for the sender:
+```bash
+make test_all
+```
+
+_AirSim Receiver_
+
+Set required environment variables:
+- AIRSIM_ROOT - AirSim install directory (ie. `</path/to/airsim/repo>`)
+
+```bash
+# starting from 'pose/airsim' dir
+mkdir build
+cd build
+cmake ..
+make
+```
+
+To build unit tests for the receiver:
+```bash
+make test_all
 ```
 
 
