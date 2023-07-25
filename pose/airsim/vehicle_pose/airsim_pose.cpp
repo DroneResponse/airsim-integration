@@ -15,12 +15,12 @@ AirSimPose::~AirSimPose() {};
 
 
 void AirSimPose::spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) {
-    float offset_increment = 3.0;
+    float offset_increment = 5.0;
 
     msr::airlib::Vector3r vehicle_position(
         (float) pose.x,
-        (float) pose.y + offset_increment * (std::stof(vehicle_id) + 1.0),
-        (float) pose.z
+        (float) -pose.y + offset_increment * (std::stof(vehicle_id) + 1.0),
+        (float) -pose.z
     );
     msr::airlib::Quaternionr vehicle_orientation(
         (float) pose.w,
@@ -40,8 +40,8 @@ void AirSimPose::spawn_vehicle(std::string vehicle_id, PoseTransfer::Pose pose) 
 void AirSimPose::set_vehicle_pose(PoseTransfer::Pose pose, std::string vehicle_id) {
     msr::airlib::Vector3r vehicle_position(
         (float) pose.x,
-        (float) pose.y,
-        (float) pose.z
+        (float) -pose.y,
+        (float) -pose.z
     );
     msr::airlib::Quaternionr vehicle_orientation(
         (float) pose.w,
