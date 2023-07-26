@@ -1,6 +1,12 @@
 #include <cstdint>
-#include <arpa/inet.h>
 #include <bit>
+
+#ifdef _WIN32
+    #include <ws2tcpip.h>  // For Windows IP address manipulation functions
+#else
+    #include <arpa/inet.h>  // For Unix IP address manipulation functions
+#endif
+
 
 namespace net_bits {
 
