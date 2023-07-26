@@ -70,7 +70,7 @@ void UDPReceiver::listen_pose_message(
     std::mutex &mutex_pose_message) {
     PoseTransfer::UdpPoseMessage udp_pose_message;
     while(1) {
-        if (!recv(this->sock, &udp_pose_message, sizeof(udp_pose_message), 0)) {
+        if (!recv(this->sock, (char*) &udp_pose_message, sizeof(udp_pose_message), 0)) {
             std::cout << "listen_pose_message - received empty message";
         }
         mutex_pose_message.lock();
