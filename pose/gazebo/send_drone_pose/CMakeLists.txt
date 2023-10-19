@@ -12,8 +12,8 @@ add_executable(send_drone_pose ./send_drone_pose.cpp)
 # via add_submodule
 target_link_libraries(
     send_drone_pose
+    gazebo_drone_pose
     ${GAZEBO_LIBRARIES}
     pthread
-    gazebo_drone_pose
     pose_send_udp
 )
