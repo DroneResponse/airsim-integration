@@ -1,6 +1,15 @@
-#include <sys/socket.h>
+#ifdef _WIN32
+    // Windows-specific headers
+    #include <winsock2.h>
+    #include <windows.h>
+    #include <ws2tcpip.h>  // For Windows DNS-related functions
+#else
+    // Unix-specific headers
+    #include <sys/socket.h>
+    #include <netdb.h>
+#endif
+
 #include <sys/types.h>
-#include <netdb.h>
 #include <iostream>
 #include <string>
 #include "pose.hpp"
