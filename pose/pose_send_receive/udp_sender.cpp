@@ -70,7 +70,7 @@ void UDPSender::create_socket() {
 void UDPSender::send_pose_message(const PoseTransfer::PoseMessage pose_message) {
     // send pose message to airsim
     PoseTransfer::UdpPoseMessage udp_pose_message = this->pose_to_udp_message(pose_message);
-    send(this->sock, &udp_pose_message, sizeof(PoseTransfer::PoseMessage), 0);
+    send(this->sock, (char*) &udp_pose_message, sizeof(PoseTransfer::PoseMessage), 0);
 }
 
 
