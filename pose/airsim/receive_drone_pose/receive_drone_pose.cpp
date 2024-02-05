@@ -18,6 +18,9 @@ STRICT_MODE_ON
 #include "udp_receiver.hpp"
 #include "pose_handlers.hpp"
 
+#ifdef _WIN32
+   typedef unsigned int uint;
+#endif
 
 /**
  * prints pose messages every 500 ms
@@ -26,6 +29,7 @@ STRICT_MODE_ON
 */
 void print_pose(PoseTransfer::PoseMessage &pose_message, std::mutex &mutex_pose_message) {
     std::vector<uint16_t> printed_drone_ids;
+
     uint repeat_count = 0;
 
     while (1) {
