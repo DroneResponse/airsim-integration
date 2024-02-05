@@ -9,6 +9,14 @@
     #include <netdb.h>
 #endif
 
+#ifndef SHUT_RDWR
+    /*
+    SHUT_RDWR is defined in sys/socket.h
+    but on windows winsock2.h defines SD_BOTH instead.
+    */
+    #define SHUT_RDWR SD_BOTH 
+#endif
+
 #include <sys/types.h>
 #include <iostream>
 #include <string>
