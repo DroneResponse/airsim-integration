@@ -20,30 +20,28 @@ GenerateCbLocalPose::~GenerateCbLocalPose() {};
 
 
 void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
-    const std::string prefix = "local_id_"; // format: local_id_{task_id}_{num_drones_per_task}_{local_drone_id}, e.g: local_id_1_2_3
-
-    if (droneName.compare(0, prefix.size(), prefix) == 0) {
-        size_t pos1 = prefix.length();
-        size_t pos2 = droneName.find('_', pos1);
-        size_t pos3 = droneName.find('_', pos2 + 1);
-
-        if (pos2 == std::string::npos || pos3 == std::string::npos) {
-            this->droneIds[droneName] = -1;
-            return;
-        }
-
-        int task_id = std::stoi(droneName.substr(pos1, pos2 - pos1));
-        int num_drones_per_task = std::stoi(droneName.substr(pos2 + 1, pos3 - pos2 - 1));
-        int local_drone_id = std::stoi(droneName.substr(pos3 + 1));
-
-        int global_drone_id = task_id * num_drones_per_task + local_drone_id;
-
-        this->droneIds[droneName] = global_drone_id;
+    if (this->droneIds.contains(droneName)) {
+      return;
     }
-    else if (!this->droneIds.contains(droneName)) {
+
+    const std::string gidPrefix = "_gid_"; //Example droneName: drone_0_gid_123
+    size_t gidPrefixPos = droneName.rfind(gidPrefix);
+
+    if (gidPrefixPos != std::string::npos && gidPrefixPos != 0) {
+      std::string gidStr = droneName.substr(gidPrefixPos + gidPrefix.length());
+
+      try {
+        int globalId = std::stoi(gidStr);
+        this->droneIds[droneName] = globalId;
+
+      } catch (const std::invalid_argument &e) {
         this->droneIds[droneName] = uniqueDroneCount;
-        this->uniqueDroneCount++;
+      }
+    } else {
+      this->droneIds[droneName] = uniqueDroneCount;
     }
+
+    this->uniqueDroneCount++;
 }
 
 
