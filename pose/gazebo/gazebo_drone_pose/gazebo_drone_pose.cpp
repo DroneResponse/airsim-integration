@@ -20,7 +20,27 @@ GenerateCbLocalPose::~GenerateCbLocalPose() {};
 
 
 void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
-    if (!this->droneIds.contains(droneName)) {
+    const std::string prefix = "local_id_"; // format: local_id_{task_id}_{num_drones_per_task}_{local_drone_id}, e.g: local_id_1_2_3
+
+    if (droneName.compare(0, prefix.size(), prefix) == 0) {
+        size_t pos1 = prefix.length();
+        size_t pos2 = droneName.find('_', pos1);
+        size_t pos3 = droneName.find('_', pos2 + 1);
+
+        if (pos2 == std::string::npos || pos3 == std::string::npos) {
+            this->droneIds[droneName] = -1;
+            return;
+        }
+
+        int task_id = std::stoi(droneName.substr(pos1, pos2 - pos1));
+        int num_drones_per_task = std::stoi(droneName.substr(pos2 + 1, pos3 - pos2 - 1));
+        int local_drone_id = std::stoi(droneName.substr(pos3 + 1));
+
+        int global_drone_id = task_id * num_drones_per_task + local_drone_id;
+
+        this->droneIds[droneName] = global_drone_id;
+    }
+    else if (!this->droneIds.contains(droneName)) {
         this->droneIds[droneName] = uniqueDroneCount;
         this->uniqueDroneCount++;
     }
