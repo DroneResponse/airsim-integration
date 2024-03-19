@@ -32,12 +32,14 @@ class GenerateCbLocalPose {
     private:
         PoseSender* poseSender;
         std::unordered_map<std::string, uint16_t> droneIds;
+        std::unordered_map<std::string, uint64_t> messageCount;
         uint16_t uniqueDroneCount = 0;
         /**
          * gives a single unique uint16_t id to each unique drone name provided
          * @param droneName unique name of a drone
         */
         void trackDroneIds(std::string droneName);
+        uint64_t getMessageCount(std::string droneName);
 };
 
 #endif

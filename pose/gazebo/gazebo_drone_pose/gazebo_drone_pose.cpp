@@ -44,6 +44,25 @@ void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
     this->uniqueDroneCount++;
 }
 
+uint64_t GenerateCbLocalPose::getMessageCount(std::string droneName) {
+        /*
+    If we've never seen this name before, then we need to return 1.
+
+    The next time we see this name we return 2, and so on.
+    */
+    
+    auto it = this->messageCount.find(droneName);
+    if (it != this->messageCount.end()) {
+        uint64_t result = it->second;
+        it->second = result + 1;
+        return result;
+    }
+    else {
+        this->messageCount[droneName] = 2;
+        return 1;
+    }
+}
+
 
 void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
     // "~/pose/local/info" is published at 250 Hz
@@ -134,7 +153,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         // camera or drone is exactly -1.0, it will likely only be so momentarily
         if (drone_pose.xi != -1.0 && camera_pose.xi != -1.0) {
             PoseTransfer::PoseMessage pose_message {
-                .message_counter = (uint64_t) count,
+                .message_counter = this->getMessageCount(current_drone_name),
                 .drone = drone_pose,
                 .camera = camera_pose,
                 .drone_id = this->droneIds[current_drone_name]
