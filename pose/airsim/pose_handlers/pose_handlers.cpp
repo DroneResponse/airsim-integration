@@ -41,18 +41,37 @@ void PoseHandlers::set_drone_pose(
     bool *exit_flag
 ) {
     uint64_t msg_count = 0;
+    std::unordered_map<uint16_t, uint64_t> messageCount;
+
     do {
+        msg_count = 0;
+
         mutex_pose_message->lock();
-        if (pose_message->message_counter != 0) {
+        // first, have we've ever seen this drone before?
+        auto it = messageCount.find(pose_message->drone_id);
+        if (it != messageCount.end()) {
+            // yes, we have seen this drone before
+            // lets record the message count
+            msg_count = it->second;
+        }
+        else {
+            // no, we have not seen this drone before
+            // let's clear the message count
+            // and spawn a new drone
+            msg_count = 0;
             spawn_unique_drone(vehicle_interface, pose_message->drone_id, pose_message->drone);
         }
 
+        // Please recall that the message count starts at 1, and increments by 1 each time
+        // also each drone has its own message count
+        // if the message count is greater than the last message count, then we have new information
         if (pose_message->message_counter > msg_count) {
+            // so let's update the drone's pose
             vehicle_interface->set_vehicle_pose(
                 pose_message->drone,
                 std::to_string(pose_message->drone_id)
             );
-            msg_count = pose_message->message_counter;
+            messageCount[pose_message->drone_id] = pose_message->message_counter;;
         }
         mutex_pose_message->unlock();
         // update at ~200hz
