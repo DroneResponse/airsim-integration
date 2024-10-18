@@ -51,7 +51,7 @@ void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
 }
 
 
-std::string GenerateCbLocalPose::getCurrentTimeStamp(){
+std::string GenerateCbLocalPose::getCurrentTimeInFormat(){
     auto now = std::chrono::system_clock::now();
 
     // Convert to time_t to extract date and time components
@@ -158,7 +158,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.xi = ox;
             camera_pose.yj = oy;
             camera_pose.zk = oz;
-            
+
             // if (count % MESSAGE_THROTTLE == 0) {
             //     // messages should be grouped together in sequence for each drone, so the following
             //     // camera orientation is for the drone id associated with the drone position above
