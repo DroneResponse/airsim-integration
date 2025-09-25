@@ -4,30 +4,33 @@
 #include "pose.hpp"
 #include "pose_sender.hpp"
 
-#include <iostream>
-#include <iomanip>
 #include <chrono>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
 #include <sstream>
 
 constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 100;
 
+// Sentinel value for positions and orientations.
+// Zero doesn't work because that's the initial state for each drone
+// In the off chance xi for either the camera or drone is exactly NOT_SET,
+// it will likely only be so momentarily.
+#define NOT_SET -1.0
 
 GenerateCbLocalPose::GenerateCbLocalPose(
-    PoseSender* poseSender
+    PoseSender *poseSender
 ) {
     this->poseSender = poseSender;
     this->poseSender->create_socket();
 }
 
-
 GenerateCbLocalPose::~GenerateCbLocalPose() {};
-
 
 void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
     if (this->droneIds.contains(droneName)) {
-      return;
+        return;
     }
 
     const std::string gidPrefix = "_gid_"; //Example droneName: drone_0_gid_123
@@ -70,30 +73,29 @@ std::string GenerateCbLocalPose::getCurrentTimeInFormat(){
     return oss.str();
 }
 
-
-void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
+void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg) {
     // "~/pose/local/info" is published at 250 Hz
     std::cout << std::fixed;
     std::cout << std::setprecision(3);
     static int count = 0;
 
-    PoseTransfer::Pose drone_pose = (PoseTransfer::Pose) {
-        .x = -1.0,
-        .y = -1.0,
-        .z = -1.0,
-        .w = -1.0,
-        .xi = -1.0,
-        .yj = -1.0,
-        .zk = -1.0
+    PoseTransfer::Pose drone_pose = (PoseTransfer::Pose){
+        .x = NOT_SET,
+        .y = NOT_SET,
+        .z = NOT_SET,
+        .w = NOT_SET,
+        .xi = NOT_SET,
+        .yj = NOT_SET,
+        .zk = NOT_SET,
     };
-    PoseTransfer::Pose camera_pose = (PoseTransfer::Pose) {
-        .x = -1.0,
-        .y = -1.0,
-        .z = -1.0,
-        .w = -1.0,
-        .xi = -1.0,
-        .yj = -1.0,
-        .zk = -1.0
+    PoseTransfer::Pose camera_pose = (PoseTransfer::Pose){
+        .x = NOT_SET,
+        .y = NOT_SET,
+        .z = NOT_SET,
+        .w = NOT_SET,
+        .xi = NOT_SET,
+        .yj = NOT_SET,
+        .zk = NOT_SET,
     };
     std::string current_drone_name;
 
@@ -105,12 +107,12 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
         auto ox = msg->pose(i).orientation().x();
         auto oy = msg->pose(i).orientation().y();
         auto oz = msg->pose(i).orientation().z();
-    
+
         std::string msg_name = msg->pose(i).name();
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
-        // done body pose has no '::' delimiter - drone name only
+        // drone body pose has no '::' delimiter - drone name only
         if (msg_name.find("::") == std::string::npos) {
-            current_drone_name = msg->pose(i).name(); 
+            current_drone_name = msg->pose(i).name();
             this->trackDroneIds(current_drone_name);
             drone_pose.x = x;
             drone_pose.y = y;
@@ -119,39 +121,21 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             drone_pose.xi = ox;
             drone_pose.yj = oy;
             drone_pose.zk = oz;
-            // if (count % MESSAGE_THROTTLE == 0) {
 
-            std::cout << "Packet Number: " << count << ", Drone Id: "
-            << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
-            << this->getCurrentTimeInFormat() << " , Drone Position: "
-            << std::to_string(drone_pose.x) << ", "
-            << std::to_string(drone_pose.y) << ", "
-            << std::to_string(drone_pose.z) << ", Drone Orientation: "
-            << std::to_string(drone_pose.w) << ", "
-            << std::to_string(drone_pose.xi) << ", "
-            << std::to_string(drone_pose.yj) << ", "
-            << std::to_string(drone_pose.zk) 
-            << std::endl;
+            // std::cout << "Packet Number: " << count << ", Drone Id: "
+            //           << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
+            //           << this->getCurrentTimeInFormat() << " , Drone Position: "
+            //           << std::to_string(drone_pose.x) << ", "
+            //           << std::to_string(drone_pose.y) << ", "
+            //           << std::to_string(drone_pose.z) << ", Drone Orientation: "
+            //           << std::to_string(drone_pose.w) << ", "
+            //           << std::to_string(drone_pose.xi) << ", "
+            //           << std::to_string(drone_pose.yj) << ", "
+            //           << std::to_string(drone_pose.zk)
+            //           << std::endl;
 
+        } else if (msg_name.substr(msg_name.find("::") + 2, std::string::npos) == "cgo3_camera_link") {
 
-
-                // (std::cout << "Drone name: " + current_drone_name << 
-                // ", Drone id: " + std::to_string(this->droneIds[current_drone_name]));
-                // (std::cout << "\nDrone Position: " + 
-                // std::to_string(drone_pose.x) + ", " +
-                // std::to_string(drone_pose.y) + ", " +
-                // std::to_string(drone_pose.z));
-                // (std::cout << "\nDrone Orientation: " + 
-                // std::to_string(drone_pose.w) + ", " +
-                // std::to_string(drone_pose.xi) + ", " +
-                // std::to_string(drone_pose.yj) + ", " +
-                // std::to_string(drone_pose.zk));
-
-            // }
-        }
-        else if (
-            msg_name.substr(msg_name.find("::") + 2, std::string::npos) == "cgo3_camera_link"
-        ) {
             camera_pose.x = x;
             camera_pose.y = y;
             camera_pose.z = z;
@@ -159,62 +143,59 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr& msg) {
             camera_pose.xi = ox;
             camera_pose.yj = oy;
             camera_pose.zk = oz;
-
-            // if (count % MESSAGE_THROTTLE == 0) {
-            //     // messages should be grouped together in sequence for each drone, so the following
-            //     // camera orientation is for the drone id associated with the drone position above
-            //     (std::cout << "\nCamera Orientation: " + 
-            //     std::to_string(camera_pose.w) + ", " +
-            //     std::to_string(camera_pose.xi) + ", " +
-            //     std::to_string(camera_pose.yj) + ", " +
-            //     std::to_string(camera_pose.zk)
-            //     << std::endl);
-            // }
         }
 
-        // 0 doesn't work because initial state is zero for each drone, so using -1.0
-        // there may be a better value than -1.0, but even in the off chance xi for either the
-        // camera or drone is exactly -1.0, it will likely only be so momentarily
-        if (drone_pose.xi != -1.0 && camera_pose.xi != -1.0) {
-            PoseTransfer::PoseMessage pose_message {
-                .message_counter = (uint64_t) count,
+        if (drone_pose.xi != NOT_SET && camera_pose.xi != NOT_SET) {
+            PoseTransfer::PoseMessage pose_message{
+                .message_counter = (uint64_t)count,
                 .drone = drone_pose,
                 .camera = camera_pose,
-                .drone_id = this->droneIds[current_drone_name]
-            };
-
+                .drone_id = this->droneIds[current_drone_name]};
 
             // since all poses are grouped together for each drone within a message,
             // reset camera_pose and drone_pose to default values after sending a message
             // all drone a poses, then all drone b poses, then all drone c poses, . . .
             this->poseSender->send_pose_message(pose_message);
-            // if (count % MESSAGE_THROTTLE == 0) {
-            //     std::cout << "Sent pose for drone id: " << pose_message.drone_id << std::endl;
-            // }
-            drone_pose.x = -1.0;
-            drone_pose.y = -1.0;
-            drone_pose.z = -1.0;
-            drone_pose.w = -1.0;
-            drone_pose.xi = -1.0;
-            drone_pose.yj = -1.0;
-            drone_pose.zk = -1.0;
 
-            camera_pose.x = -1.0;
-            camera_pose.y = -1.0;
-            camera_pose.z = -1.0;
-            camera_pose.w = -1.0;
-            camera_pose.xi = -1.0;
-            camera_pose.yj = -1.0;
-            camera_pose.zk = -1.0;
+            if (count % MESSAGE_THROTTLE == 0) {
+                std::cout << "Sent position #" << count << ", Drone Id: "
+                          << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
+                          << this->getCurrentTimeInFormat() << " , Drone Position: "
+                          << std::to_string(drone_pose.x) << ", "
+                          << std::to_string(drone_pose.y) << ", "
+                          << std::to_string(drone_pose.z) << ", Drone Orientation: "
+                          << std::to_string(drone_pose.w) << ", "
+                          << std::to_string(drone_pose.xi) << ", "
+                          << std::to_string(drone_pose.yj) << ", "
+                          << std::to_string(drone_pose.zk)
+                          << std::endl;
+            }
+
+            reset_vectors(drone_pose, camera_pose);
         }
     }
-    // if (count % MESSAGE_THROTTLE == 0) {
-    //     std::cout << std::endl;
-    // }
 
     ++count;
 }
 
+// Reset the pose vectors to NOT_SET values.
+void GenerateCbLocalPose::reset_vectors(PoseTransfer::Pose &drone_pose, PoseTransfer::Pose &camera_pose) {
+    drone_pose.x = NOT_SET;
+    drone_pose.y = NOT_SET;
+    drone_pose.z = NOT_SET;
+    drone_pose.w = NOT_SET;
+    drone_pose.xi = NOT_SET;
+    drone_pose.yj = NOT_SET;
+    drone_pose.zk = NOT_SET;
+
+    camera_pose.x = NOT_SET;
+    camera_pose.y = NOT_SET;
+    camera_pose.z = NOT_SET;
+    camera_pose.w = NOT_SET;
+    camera_pose.xi = NOT_SET;
+    camera_pose.yj = NOT_SET;
+    camera_pose.zk = NOT_SET;
+}
 
 gazebo::transport::SubscriberPtr GenerateCbLocalPose::subscribeGazeboNode(
     gazebo::transport::NodePtr gazeboNodePtr
