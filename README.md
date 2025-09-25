@@ -11,18 +11,17 @@ Provides programs to stream drone and camera poses from Gazebo to AirSim over UD
 
 > [!NOTE]
 > When building on Mac via package configs, [gstreamer recommends](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation-with-pkgconfig) the following environment variable updates are made:
-
-```bash
-# Tell pkg-config where to find the .pc files
-export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
-
-# We will use the pkg-config provided by the GStreamer.framework
-export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
-```
-
-Depending on your installation, the paths may be different from above. For example, if installed with `brew` then the path may be `/opt/homebrew/Cellar/gstreamer/...` With `brew`, the gstreamer packages including various elements (base, good, bad, ugly) will be installed separately as well.
-
-You can alternately [compile directly](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation) with flags to headers, libraries and frameworks.
+>
+> ```bash
+> # Tell pkg-config where to find the .pc files
+> export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+>
+> # We will use the pkg-config provided by the GStreamer.framework
+> export PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/bin:$PATH
+> ```
+>
+> Depending on your installation, the paths may be different from above. For example, if installed with `brew` then the path may be `/opt/homebrew/Cellar/gstreamer/...` With `brew`, the gstreamer packages including various elements (base, good, bad, ugly) will be installed separately as well.
+> You can alternately [compile directly](https://gstreamer.freedesktop.org/documentation/installing/on-mac-osx.html#manual-compilation) with flags to headers, libraries and frameworks.
 
 When building on Linux, you should be able to use a pre-existing installation of pkg-config and do not need to set the env variables above.
 
@@ -35,34 +34,33 @@ _Additional dependencies:_
 
 Set required environment variable:
 
-- AIRSIM_ROOT - AirSim install directory (ie. `/Users/<user>/repos/AirSim`)
+- `AIRSIM_ROOT` - AirSim install directory (e.g. `/Users/<user>/repos/AirSim`)
 
 If you are compiling on mac and gstreamer is installed as a /Library/Framework, you will want to set the following environment variable so the required headers are successfully found
 
-- GSTREAMER_ROOT - Gstreamer install directory (ie. `/Library/Frameworks/GStreamer.framework`)
+- `GSTREAMER_ROOT` - Gstreamer install directory (e.g. `/Library/Frameworks/GStreamer.framework`)
 
 Create a build directory and run cmake / make:
 
 ```bash
-# starting from 'send' dir
-mkdir build
-cd build
+cd camera/send
+mkdir -p build && cd build
 cmake ..
 make
 ```
 
 ### Jetson receive
 
-Used to test that video is being successfully streamed from airsim to a Nvidia Jetson device. Must be build on the Jetson as it uses Nvidia specific gstreamer libraries to interace with the Nvidia GPU.
+Used to test that video is being successfully streamed from airsim to a NVIDIA Jetson device. Must be build on the Jetson as it uses NVIDIA specific gstreamer libraries to interace with the NVIDIA GPU.
 
 _Additional dependencies:_
 
 - [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 
 ```bash
-# starting from the 'receive/jetson' dir
-mkdir build
-g++ ./src/udp-cam-receive-jetson.cpp -o ./build/udp-cam-receive-jetson `pkg-config --cflags --libs gstreamer-1.0`
+cd camera/receive/jetson
+mkdir -p build
+g++ ./src/udp-cam-receive-jetson.cpp -o ./build/udp-cam-receive-jetson $(pkg-config --cflags --libs gstreamer-1.0)
 ```
 
 ### Local receive
@@ -75,9 +73,9 @@ _Additional dependencies:_
 - [Gstreamer](https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c)
 
 ```bash
-# starting from 'receive/linux'
-mkdir build
-g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --libs gstreamer-1.0`
+cd camera/receive/linux
+mkdir -p build
+g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive $(pkg-config --cflags --libs gstreamer-1.0)
 ```
 
 ## Building the Pose Streamer
@@ -85,16 +83,15 @@ g++ ./src/udp-cam-receive.cpp -o ./build/udp-cam-receive `pkg-config --cflags --
 _Additional dependencies:_
 
 - cmake
-- [px4 gazebo](https://docs.px4.io/main/en/simulation/gazebo.html)
+- [px4 gazebo](https://docs.px4.io/v1.12/en/simulation/gazebo.html)
     - for Arm Mac's, must be [compiled using rosetta in X86 terminal](https://docs.px4.io/main/en/dev_setup/dev_env_mac.html#macos-development-environment)
-    - the same X86 terminal will need to be used to compile gazebo send_drone_pose in this repo
+    - the same X86 terminal will need to be used to compile gazebo `send_drone_pose` in this repo
 
 ### _Gazebo Sender_
 
 ```bash
-# starting from 'pose/gazebo' dir
-mkdir build
-cd build
+cd pose/gazebo
+mkdir -p build && cd build
 cmake ..
 make
 ```
