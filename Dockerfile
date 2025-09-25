@@ -5,48 +5,48 @@
 FROM ubuntu:20.04 AS px4-dev-base-focal
 LABEL maintainer="Daniel Agar <daniel@agar.ca>"
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
-		bzip2 \
-		ca-certificates \
-		ccache \
-		cmake \
-		cppcheck \
-		curl \
-		dirmngr \
-		doxygen \
-		file \
-		g++ \
-		gcc \
-		gdb \
-		git \
-		gnupg \
-		gosu \
-		lcov \
-		libfreetype6-dev \
-		libgtest-dev \
-		libpng-dev \
-		libssl-dev \
-		lsb-release \
-		make \
-		ninja-build \
-		openjdk-8-jdk \
-		openjdk-8-jre \
-		openssh-client \
-		pkg-config \
-		python3-dev \
-		python3-pip \
-		rsync \
-		shellcheck \
-		tzdata \
-		unzip \
-		valgrind \
-		wget \
-		xsltproc \
-		zip \
+	bzip2 \
+	ca-certificates \
+	ccache \
+	cmake \
+	cppcheck \
+	curl \
+	dirmngr \
+	doxygen \
+	file \
+	g++ \
+	gcc \
+	gdb \
+	git \
+	gnupg \
+	gosu \
+	lcov \
+	libfreetype6-dev \
+	libgtest-dev \
+	libpng-dev \
+	libssl-dev \
+	lsb-release \
+	make \
+	ninja-build \
+	openjdk-8-jdk \
+	openjdk-8-jre \
+	openssh-client \
+	pkg-config \
+	python3-dev \
+	python3-pip \
+	rsync \
+	shellcheck \
+	tzdata \
+	unzip \
+	valgrind \
+	wget \
+	xsltproc \
+	zip \
 	&& apt-get -y autoremove \
 	&& apt-get clean autoclean \
 	&& rm -rf /var/lib/apt/lists/{apt,dpkg,cache,log} /tmp/* /var/tmp/*
@@ -63,8 +63,8 @@ RUN python3 -m pip install --upgrade pip wheel setuptools
 
 # Python 3 dependencies installed by pip
 RUN python3 -m pip install argparse argcomplete coverage cerberus empy jinja2 kconfiglib \
-		matplotlib==3.0.* numpy nunavut>=1.1.0 packaging pkgconfig pyros-genmsg pyulog \
-		pyyaml requests serial six toml psutil pyulog wheel jsonschema pynacl
+	matplotlib==3.0.* numpy nunavut>=1.1.0 packaging pkgconfig pyros-genmsg pyulog \
+	pyyaml requests serial six toml psutil pyulog wheel jsonschema pynacl
 
 # manual ccache setup
 RUN ln -s /usr/bin/ccache /usr/lib/ccache/cc \
@@ -83,7 +83,7 @@ RUN wget -q "https://services.gradle.org/distributions/gradle-6.3-rc-4-bin.zip" 
 	&& unzip -d /opt/gradle gradle-6.3-rc-4-bin.zip \
 	&& rm -rf /tmp/*
 
-ENV PATH "/opt/gradle/gradle-6.3-rc-4/bin:$PATH"
+ENV PATH="/opt/gradle/gradle-6.3-rc-4/bin:$PATH"
 
 # Intall foonathan_memory from source as it is required to Fast-RTPS >= 1.9
 RUN git clone https://github.com/eProsima/foonathan_memory_vendor.git /tmp/foonathan_memory \
@@ -115,7 +115,7 @@ RUN useradd --shell /bin/bash -u 1001 -c "" -m user && usermod -a -G dialout use
 RUN mkdir /tmp/.X11-unix && \
 	chmod 1777 /tmp/.X11-unix && \
 	chown -R root:root /tmp/.X11-unix
-ENV DISPLAY :99
+ENV DISPLAY=:99
 
 ENV CCACHE_UMASK=000
 ENV FASTRTPSGEN_DIR="/usr/local/bin/"
@@ -146,31 +146,31 @@ RUN wget --quiet http://packages.osrfoundation.org/gazebo.key -O - | apt-key add
 	&& sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -sc` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
 	&& apt-get update --fix-missing \
 	&& DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --no-install-recommends install \
-		ant \
-		binutils \
-		bc \
-		dirmngr \
-		gazebo11 \
-		gstreamer1.0-plugins-bad \
-		gstreamer1.0-plugins-base \
-		gstreamer1.0-plugins-good \
-		gstreamer1.0-plugins-ugly \
-		libeigen3-dev \
-		libgazebo11-dev \
-		libgstreamer-plugins-base1.0-dev \
-		libimage-exiftool-perl \
-		libopencv-dev \
-		libxml2-utils \
-		mesa-utils \
-		protobuf-compiler \
-		x-window-system \
-		ignition-edifice \
+	ant \
+	binutils \
+	bc \
+	dirmngr \
+	gazebo11 \
+	gstreamer1.0-plugins-bad \
+	gstreamer1.0-plugins-base \
+	gstreamer1.0-plugins-good \
+	gstreamer1.0-plugins-ugly \
+	libeigen3-dev \
+	libgazebo11-dev \
+	libgstreamer-plugins-base1.0-dev \
+	libimage-exiftool-perl \
+	libopencv-dev \
+	libxml2-utils \
+	mesa-utils \
+	protobuf-compiler \
+	x-window-system \
+	ignition-edifice \
 	&& apt-get -y autoremove \
 	&& apt-get clean autoclean \
 	&& rm -rf /var/lib/apt/lists/{apt,dpkg,cache,log} /tmp/* /var/tmp/*
 
 # Some QT-Apps/Gazebo don't not show controls without this
-ENV QT_X11_NO_MITSHM 1
+ENV QT_X11_NO_MITSHM=1
 
 # Use UTF8 encoding in java tools (needed to compile jMAVSim)
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
@@ -183,7 +183,7 @@ COPY ./pose /pose
 RUN mkdir -p /pose/gazebo/build
 WORKDIR /pose/gazebo/build
 RUN cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .. \
-    && make \
-    && mv ./send_drone_pose/send_drone_pose /usr/local/bin
+	&& make \
+	&& mv ./send_drone_pose/send_drone_pose /usr/local/bin
 
 WORKDIR /

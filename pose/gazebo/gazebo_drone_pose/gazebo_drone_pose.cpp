@@ -33,28 +33,27 @@ void GenerateCbLocalPose::trackDroneIds(std::string droneName) {
         return;
     }
 
-    const std::string gidPrefix = "_gid_"; //Example droneName: drone_0_gid_123
+    const std::string gidPrefix = "_gid_"; // Example droneName: drone_0_gid_123
     size_t gidPrefixPos = droneName.rfind(gidPrefix);
 
     if (gidPrefixPos != std::string::npos && gidPrefixPos != 0) {
-      std::string gidStr = droneName.substr(gidPrefixPos + gidPrefix.length());
+        std::string gidStr = droneName.substr(gidPrefixPos + gidPrefix.length());
 
-      try {
-        int globalId = std::stoi(gidStr);
-        this->droneIds[droneName] = globalId;
+        try {
+            int globalId = std::stoi(gidStr);
+            this->droneIds[droneName] = globalId;
 
-      } catch (const std::invalid_argument &e) {
-        this->droneIds[droneName] = uniqueDroneCount;
-      }
+        } catch (const std::invalid_argument &e) {
+            this->droneIds[droneName] = uniqueDroneCount;
+        }
     } else {
-      this->droneIds[droneName] = uniqueDroneCount;
+        this->droneIds[droneName] = uniqueDroneCount;
     }
 
     this->uniqueDroneCount++;
 }
 
-
-std::string GenerateCbLocalPose::getCurrentTimeInFormat(){
+std::string GenerateCbLocalPose::getCurrentTimeInFormat() {
     auto now = std::chrono::system_clock::now();
 
     // Convert to time_t to extract date and time components
@@ -64,8 +63,8 @@ std::string GenerateCbLocalPose::getCurrentTimeInFormat(){
     // Extract fractional seconds
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
         now.time_since_epoch()) % 1'000'000;
-    
-     // Use a stringstream to format the output as a string
+
+    // Use a stringstream to format the output as a string
     std::ostringstream oss;
     oss << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S")
         << std::setw(6) << std::setfill('0') << microseconds.count();
