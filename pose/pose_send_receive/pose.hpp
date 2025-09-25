@@ -18,14 +18,15 @@ namespace PoseTransfer {
         double zk;
     } Pose;
 
+#pragma pack(push, 2) // prevents padding bytes; PoseMessage is 122 bytes
     typedef struct PoseMessage {
         uint64_t message_counter; // this is a counter that increments every time we send a message
         Pose drone;
         Pose camera;
         uint16_t drone_id;
     } PoseMessage;
+#pragma pack(pop)
 
-    #pragma pack(push,1)
     typedef struct UdpPose {
         int64_t x;
         int64_t y;
@@ -36,16 +37,16 @@ namespace PoseTransfer {
         int64_t zk;
     } UdpPose;
 
+#pragma pack(push, 2) // prevents padding bytes; UdpPoseMessage is 122 bytes
     typedef struct UdpPoseMessage {
         uint64_t message_counter; // this is a counter that increments every time we send a message
         UdpPose drone;
         UdpPose camera;
         uint16_t drone_id;
     } UdpPoseMessage;
-    #pragma pack(pop)
+#pragma pack(pop)
 
     static constexpr unsigned long udp_decimal_offset = 1e6; // used to convert doubles to uint64_t
 }
-
 
 #endif
