@@ -145,7 +145,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg) {
             camera_pose.zk = oz;
         }
 
-        if (drone_pose.xi != NOT_SET && camera_pose.xi != NOT_SET) {
+        if (drone_pose.xi != NOT_SET) {
             PoseTransfer::PoseMessage pose_message{
                 .message_counter = (uint64_t)count,
                 .drone = drone_pose,
