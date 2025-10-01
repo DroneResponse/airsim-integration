@@ -4,6 +4,7 @@
 #include <gazebo/transport/transport.hh>
 
 #include "pose_sender.hpp"
+#include "pose.hpp"
 
 #ifndef SEND_DRONE_POSE
 #define SEND_DRONE_POSE

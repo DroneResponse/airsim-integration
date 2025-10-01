@@ -1,8 +1,6 @@
 #include <string>
 
 #include "gazebo_drone_pose.hpp"
-#include "pose.hpp"
-#include "pose_sender.hpp"
 
 #include <iostream>
 #include <iomanip>

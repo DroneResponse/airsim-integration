@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 find_package(gazebo REQUIRED)
 
 set(SendReceiveSourceDir
-../../pose_send_receive
+../pose_send_receive
 )
 
 # ideally would reference target pose_send_udp built with add_subdirectory
