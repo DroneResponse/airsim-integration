@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     gazebo::transport::SubscriberPtr sub_pose1 = generateCbLocalPose.subscribeGazeboNode(gazeboNodePtr);
 
     while (true)
-        gazebo::common::Time::MSleep(10);
+        gazebo::common::Time::MSleep(1000);
 
     // Make sure to shut everything down.
     gazebo::client::shutdown();
