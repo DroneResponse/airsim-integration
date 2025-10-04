@@ -142,26 +142,34 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
         // 0 doesn't work because initial state is zero for each drone, so using -1.0
         // there may be a better value than -1.0, but even in the off chance xi for either the
         // camera or drone is exactly -1.0, it will likely only be so momentarily
-        if (drone_pose.xi != -1.0 || camera_pose.xi != -1.0)
-        {
-            PoseTransfer::PoseMessage pose_message{
-                .message_counter = (uint64_t)count,
-                .drone = drone_pose,
-                .camera = camera_pose,
-                .drone_id = this->droneIds[current_drone_name]};
+        if (
+                (drone_pose.x != -1.0 || camera_pose.x != -1.0) ||
+                (drone_pose.y != -1.0 || camera_pose.y != -1.0) ||
+                (drone_pose.z != -1.0 || camera_pose.z != -1.0) ||
+                (drone_pose.w != -1.0 || camera_pose.w != -1.0) ||
+                (drone_pose.xi != -1.0 || camera_pose.xi != -1.0) ||
+                (drone_pose.yj != -1.0 || camera_pose.yj != -1.0) ||
+                (drone_pose.zk != -1.0 || camera_pose.zk != -1.0) 
+        )
+            {
+                PoseTransfer::PoseMessage pose_message{
+                    .message_counter = (uint64_t)count,
+                    .drone = drone_pose,
+                    .camera = camera_pose,
+                    .drone_id = this->droneIds[current_drone_name]};
 
-            // since all poses are grouped together for each drone within a message,
-            // reset camera_pose and drone_pose to default values after sending a message
-            // all drone a poses, then all drone b poses, then all drone c poses, . . .
-            this->poseSender->send_pose_message(pose_message);
-            // if (count % MESSAGE_THROTTLE == 0) {
-            //     std::cout << "Sent pose for drone id: " << pose_message.drone_id << std::endl;
-            // }
+                // since all poses are grouped together for each drone within a message,
+                // reset camera_pose and drone_pose to default values after sending a message
+                // all drone a poses, then all drone b poses, then all drone c poses, . . .
+                this->poseSender->send_pose_message(pose_message);
+                // if (count % MESSAGE_THROTTLE == 0) {
+                //     std::cout << "Sent pose for drone id: " << pose_message.drone_id << std::endl;
+                // }
 
-            // reset the pose to default values for next drone in message
-            this->resetPoseToDefault(drone_pose);
-            this->resetPoseToDefault(camera_pose);
-        }
+                // reset the pose to default values for next drone in message
+                this->resetPoseToDefault(drone_pose);
+                this->resetPoseToDefault(camera_pose);
+            }
     }
 
     ++count;
