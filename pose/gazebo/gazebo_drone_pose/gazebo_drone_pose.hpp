@@ -4,6 +4,7 @@
 #include <gazebo/transport/transport.hh>
 
 #include "pose_sender.hpp"
+#include "pose.hpp"
 
 #ifndef SEND_DRONE_POSE
 #define SEND_DRONE_POSE
@@ -40,7 +41,9 @@ class GenerateCbLocalPose {
          * gives a single unique uint16_t id to each unique drone name provided
          * @param droneName unique name of a drone
         */
-        void trackDroneIds(std::string droneName);
+        void trackDroneIds(const std::string droneName);
+        void resetPoseToDefault(PoseTransfer::Pose &pose);
+
 };
 
 #endif
