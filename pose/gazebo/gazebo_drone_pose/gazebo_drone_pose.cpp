@@ -9,7 +9,7 @@
 #include <sstream>
 
 constexpr int NWIDTH = 7;
-static constexpr int MESSAGE_THROTTLE = 100;
+static constexpr int MESSAGE_THROTTLE = 250; // to reduce console output frequency (250 = 1 second as topic is at 250 Hz)
 
 GenerateCbLocalPose::GenerateCbLocalPose(
     PoseSender *poseSender)
@@ -113,19 +113,20 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
             drone_pose.xi = msg_pose_gazebo.orientation().x();
             drone_pose.yj = msg_pose_gazebo.orientation().y();
             drone_pose.zk = msg_pose_gazebo.orientation().z();
-            // if (count % MESSAGE_THROTTLE == 0) {
+            if (count % MESSAGE_THROTTLE == 0) {
 
-            std::cout << "Packet Number: " << count << ", Drone Id: "
-                      << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
-                      << this->getCurrentTimeInFormat() << " , Drone Position: "
-                      << std::to_string(drone_pose.x) << ", "
-                      << std::to_string(drone_pose.y) << ", "
-                      << std::to_string(drone_pose.z) << ", Drone Orientation: "
-                      << std::to_string(drone_pose.w) << ", "
-                      << std::to_string(drone_pose.xi) << ", "
-                      << std::to_string(drone_pose.yj) << ", "
-                      << std::to_string(drone_pose.zk)
-                      << std::endl;
+                std::cout << "Packet Number: " << count << ", Drone Id: "
+                        << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
+                        << this->getCurrentTimeInFormat() << " , Drone Position: "
+                        << std::to_string(drone_pose.x) << ", "
+                        << std::to_string(drone_pose.y) << ", "
+                        << std::to_string(drone_pose.z) << ", Drone Orientation: "
+                        << std::to_string(drone_pose.w) << ", "
+                        << std::to_string(drone_pose.xi) << ", "
+                        << std::to_string(drone_pose.yj) << ", "
+                        << std::to_string(drone_pose.zk)
+                        << std::endl;
+            }
         }
         else if (
             current_drone_name.substr(current_drone_name.find("::") + 2, std::string::npos) == "cgo3_camera_link")
