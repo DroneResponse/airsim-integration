@@ -9,7 +9,7 @@
 #include <sstream>
 
 constexpr int NWIDTH = 7;
-static constexpr int MESSAGE_THROTTLE = 250; // to reduce console output frequency (250 = 1 second as topic is at 250 Hz)
+static constexpr int MESSAGE_THROTTLE = 250;
 
 GenerateCbLocalPose::GenerateCbLocalPose(
     PoseSender *poseSender)
@@ -73,15 +73,23 @@ std::string GenerateCbLocalPose::getCurrentTimeInFormat()
     return oss.str();
 }
 
-void GenerateCbLocalPose::resetPoseToDefault(PoseTransfer::Pose &pose)
+void GenerateCbLocalPose::resetPoseToDefault(uint16_t key)
 {
-    pose.x = -1.0;
-    pose.y = -1.0;
-    pose.z = -1.0;
-    pose.w = -1.0;
-    pose.xi = -1.0;
-    pose.yj = -1.0;
-    pose.zk = -1.0;
+    this->drone_pose_map[key].x = -1;
+    this->drone_pose_map[key].y = -1;
+    this->drone_pose_map[key].z = -1;
+    this->drone_pose_map[key].w = -1;
+    this->drone_pose_map[key].xi = -1;
+    this->drone_pose_map[key].yj = -1;
+    this->drone_pose_map[key].zk = -1;
+
+    this->camera_pose_map[key].x = -1;
+    this->camera_pose_map[key].y = -1;
+    this->camera_pose_map[key].z = -1;
+    this->camera_pose_map[key].w = -1;
+    this->camera_pose_map[key].xi = -1;
+    this->camera_pose_map[key].yj = -1;
+    this->camera_pose_map[key].zk = -1;
 }
 
 void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
@@ -91,88 +99,82 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
     std::cout << std::setprecision(3);
     static int count = 0;
 
-    PoseTransfer::Pose drone_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
-    PoseTransfer::Pose camera_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
     std::string current_drone_name;
 
     for (int i = 0; i < msg->pose_size(); i++)
     {
-
         current_drone_name = msg->pose(i).name();
+        size_t delimiter_pos = current_drone_name.find("::");
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
         // done body pose has no '::' delimiter - drone name only
         const auto &msg_pose_gazebo = msg->pose(i);
-        if (current_drone_name.find("::") == std::string::npos)
+        if (delimiter_pos == std::string::npos)
         {
-            current_drone_name = msg_pose_gazebo.name();
+            // track the drone id
             this->trackDroneIds(current_drone_name);
-            drone_pose.x = msg_pose_gazebo.position().x();
-            drone_pose.y = msg_pose_gazebo.position().y();
-            drone_pose.z = msg_pose_gazebo.position().z();
-            drone_pose.w = msg_pose_gazebo.orientation().w();
-            drone_pose.xi = msg_pose_gazebo.orientation().x();
-            drone_pose.yj = msg_pose_gazebo.orientation().y();
-            drone_pose.zk = msg_pose_gazebo.orientation().z();
-            if (count % MESSAGE_THROTTLE == 0) {
-
-                std::cout << "Packet Number: " << count << ", Drone Id: "
-                        << std::to_string(this->droneIds[current_drone_name]) << ", Timestamp: "
-                        << this->getCurrentTimeInFormat() << " , Drone Position: "
-                        << std::to_string(drone_pose.x) << ", "
-                        << std::to_string(drone_pose.y) << ", "
-                        << std::to_string(drone_pose.z) << ", Drone Orientation: "
-                        << std::to_string(drone_pose.w) << ", "
-                        << std::to_string(drone_pose.xi) << ", "
-                        << std::to_string(drone_pose.yj) << ", "
-                        << std::to_string(drone_pose.zk)
-                        << std::endl;
+            // check if the droneID is already part of cd lthe hashmap
+            if(!this->drone_pose_map.contains(this->droneIds[current_drone_name])){
+                // add the empty pose here
+                PoseTransfer::Pose drone_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+                this->drone_pose_map[this->droneIds[current_drone_name]] = drone_pose;
             }
+
+            this->drone_pose_map[this->droneIds[current_drone_name]].x = msg_pose_gazebo.position().x();
+            this->drone_pose_map[this->droneIds[current_drone_name]].y = msg_pose_gazebo.position().y();
+            this->drone_pose_map[this->droneIds[current_drone_name]].z = msg_pose_gazebo.position().z();
+            this->drone_pose_map[this->droneIds[current_drone_name]].w = msg_pose_gazebo.orientation().w();
+            this->drone_pose_map[this->droneIds[current_drone_name]].xi = msg_pose_gazebo.orientation().x();
+            this->drone_pose_map[this->droneIds[current_drone_name]].yj = msg_pose_gazebo.orientation().y();
+            this->drone_pose_map[this->droneIds[current_drone_name]].zk = msg_pose_gazebo.orientation().z();
         }
         else if (
-            current_drone_name.substr(current_drone_name.find("::") + 2, std::string::npos) == "cgo3_camera_link")
+            current_drone_name.substr(delimiter_pos + 2, std::string::npos) == "cgo3_camera_link")
         {
-            camera_pose.x = msg_pose_gazebo.position().x();
-            camera_pose.y = msg_pose_gazebo.position().y();
-            camera_pose.z = msg_pose_gazebo.position().z();
-            camera_pose.w = msg_pose_gazebo.orientation().w();
-            camera_pose.xi = msg_pose_gazebo.orientation().x();
-            camera_pose.yj = msg_pose_gazebo.orientation().y();
-            camera_pose.zk = msg_pose_gazebo.orientation().z();
+            // check if the droneID is already part of the hashmap
+            std::string drone_name = current_drone_name.substr(0, delimiter_pos);
+            if(!this->camera_pose_map.contains(this->droneIds[drone_name])){
+                // add the empty pose here
+                PoseTransfer::Pose camera_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+                this->camera_pose_map[this->droneIds[drone_name]] = camera_pose;
+            }
+
+            this->camera_pose_map[this->droneIds[drone_name]].x = msg_pose_gazebo.position().x();
+            this->camera_pose_map[this->droneIds[drone_name]].y = msg_pose_gazebo.position().y();
+            this->camera_pose_map[this->droneIds[drone_name]].z = msg_pose_gazebo.position().z();
+            this->camera_pose_map[this->droneIds[drone_name]].w = msg_pose_gazebo.orientation().w();
+            this->camera_pose_map[this->droneIds[drone_name]].xi = msg_pose_gazebo.orientation().x();
+            this->camera_pose_map[this->droneIds[drone_name]].yj = msg_pose_gazebo.orientation().y();
+            this->camera_pose_map[this->droneIds[drone_name]].zk = msg_pose_gazebo.orientation().z();
+
         }
 
-        // 0 doesn't work because initial state is zero for each drone, so using -1.0
-        // there may be a better value than -1.0, but even in the off chance xi for either the
-        // camera or drone is exactly -1.0, it will likely only be so momentarily
-        if (
-                (drone_pose.x != -1.0 || camera_pose.x != -1.0) ||
-                (drone_pose.y != -1.0 || camera_pose.y != -1.0) ||
-                (drone_pose.z != -1.0 || camera_pose.z != -1.0) ||
-                (drone_pose.w != -1.0 || camera_pose.w != -1.0) ||
-                (drone_pose.xi != -1.0 || camera_pose.xi != -1.0) ||
-                (drone_pose.yj != -1.0 || camera_pose.yj != -1.0) ||
-                (drone_pose.zk != -1.0 || camera_pose.zk != -1.0) 
-        )
-            {
-                PoseTransfer::PoseMessage pose_message{
-                    .message_counter = (uint64_t)count,
-                    .drone = drone_pose,
-                    .camera = camera_pose,
-                    .drone_id = this->droneIds[current_drone_name]};
-
-                // since all poses are grouped together for each drone within a message,
-                // reset camera_pose and drone_pose to default values after sending a message
-                // all drone a poses, then all drone b poses, then all drone c poses, . . .
-                this->poseSender->send_pose_message(pose_message);
-                // if (count % MESSAGE_THROTTLE == 0) {
-                //     std::cout << "Sent pose for drone id: " << pose_message.drone_id << std::endl;
-                // }
-
-                // reset the pose to default values for next drone in message
-                this->resetPoseToDefault(drone_pose);
-                this->resetPoseToDefault(camera_pose);
-            }
     }
 
+    // now send the packets and increment counter
+    for (const auto& pair: this->droneIds){
+        // this is the droneID
+        PoseTransfer::PoseMessage pose_message{
+                    .message_counter = (uint64_t)count,
+                    .drone = this->drone_pose_map[pair.second],
+                    .camera = this->camera_pose_map[pair.second],
+                    .drone_id = pair.second};
+        this->poseSender->send_pose_message(pose_message);
+        if (count % MESSAGE_THROTTLE == 0) {
+            std::cout << "Packet Number: " << count << ", Drone Id: "
+                    << std::to_string(pair.second) << ", Timestamp: "
+                    << this->getCurrentTimeInFormat() << " , Drone Position: "
+                    << std::to_string(this->drone_pose_map[pair.second].x) << ", "
+                    << std::to_string(this->drone_pose_map[pair.second].y) << ", "
+                    << std::to_string(this->drone_pose_map[pair.second].z) << ", Drone Orientation: "
+                    << std::to_string(this->drone_pose_map[pair.second].w) << ", "
+                    << std::to_string(this->drone_pose_map[pair.second].xi) << ", "
+                    << std::to_string(this->drone_pose_map[pair.second].yj) << ", "
+                    << std::to_string(this->drone_pose_map[pair.second].zk)
+                    << std::endl;
+        }
+
+        this->resetPoseToDefault(pair.second);
+    }
     ++count;
 }
 

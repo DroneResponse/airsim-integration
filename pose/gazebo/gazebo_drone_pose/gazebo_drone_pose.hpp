@@ -42,7 +42,10 @@ class GenerateCbLocalPose {
          * @param droneName unique name of a drone
         */
         void trackDroneIds(const std::string droneName);
-        void resetPoseToDefault(PoseTransfer::Pose &pose);
+        void resetPoseToDefault(uint16_t key);
+
+        std::unordered_map<uint16_t, PoseTransfer::Pose> drone_pose_map;
+        std::unordered_map<uint16_t, PoseTransfer::Pose> camera_pose_map;
 
 };
 
