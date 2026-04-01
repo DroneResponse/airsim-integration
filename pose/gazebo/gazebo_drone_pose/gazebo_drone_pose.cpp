@@ -1,5 +1,3 @@
-#include <string>
-
 #include "gazebo_drone_pose.hpp"
 
 #include <iostream>
@@ -12,10 +10,11 @@ constexpr int NWIDTH = 7;
 static constexpr int MESSAGE_THROTTLE = 250;
 
 GenerateCbLocalPose::GenerateCbLocalPose(
-    PoseSender *poseSender)
+    PoseSender *poseSender, std::string drone_name)
 {
     this->poseSender = poseSender;
     this->poseSender->create_socket();
+    this->drone_name = drone_name;
 }
 
 GenerateCbLocalPose::~GenerateCbLocalPose() {};
@@ -108,7 +107,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
         // https://en.cppreference.com/w/cpp/string/basic_string/npos
         // done body pose has no '::' delimiter - drone name only
         const auto &msg_pose_gazebo = msg->pose(i);
-        if (delimiter_pos == std::string::npos)
+        if (delimiter_pos == std::string::npos && current_drone_name.starts_with(this->drone_name))
         {
             // track the drone id
             this->trackDroneIds(current_drone_name);

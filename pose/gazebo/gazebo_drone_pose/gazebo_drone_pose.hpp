@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <string>
 
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
@@ -16,7 +17,7 @@ class GenerateCbLocalPose {
          * constructor
          * @param poseSender a UDPSender object
         */
-        GenerateCbLocalPose(PoseSender* poseSender);
+        GenerateCbLocalPose(PoseSender* poseSender, std::string drone_name);
         ~GenerateCbLocalPose();
         /**
          * local pose callback where gazebo drone represents airsim drone's global pose
@@ -35,6 +36,7 @@ class GenerateCbLocalPose {
 
     private:
         PoseSender* poseSender;
+        std::string drone_name;
         std::unordered_map<std::string, uint16_t> droneIds;
         uint16_t uniqueDroneCount = 0;
         /**
