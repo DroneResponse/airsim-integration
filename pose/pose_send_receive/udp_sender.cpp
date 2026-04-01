@@ -9,6 +9,11 @@ UDPSender::UDPSender(std::string host, unsigned short dest_port) : PoseSender(ho
 
 
 UDPSender::~UDPSender() {
+    //check if socket is valid before closing
+    if (this->sock < 0) {
+        return;
+    }
+    // as UDP socket is connectionless, we just shutdown the socket
     if (!shutdown(this->sock, SHUT_RDWR)) {
         std::cerr << "udp sender socket not successfully closed" << std::endl;
     };

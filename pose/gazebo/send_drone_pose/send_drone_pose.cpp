@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "udp_sender.hpp"
 #include "gazebo_drone_pose.hpp"
@@ -15,6 +16,7 @@ int main(int argc, char** argv)
 {
     std::string AIRSIM_HOST = "127.0.0.1";
     unsigned short AIRSIM_PORT = 50000;
+    std::string DRONE_NAME = "typhoon_h480";
 
     for (int i=0; i < argc; i++) {
         if (strcmp(argv[i], "-p") == 0) {
@@ -29,10 +31,14 @@ int main(int argc, char** argv)
             std::string ss = argv[i + 1];
             AIRSIM_HOST = ss;
         }
+        if (strcmp(argv[i], "-n") == 0) {
+            std::string drone_name = argv[i + 1];
+            DRONE_NAME = drone_name;
+        }
     }
 
     UDPSender udpSender (AIRSIM_HOST, AIRSIM_PORT);
-    GenerateCbLocalPose generateCbLocalPose (&udpSender);
+    GenerateCbLocalPose generateCbLocalPose (&udpSender, DRONE_NAME);
 
     // print out the version of gazebo
     std::cout << "Gazebo version: " << GAZEBO_MAJOR_VERSION << "." << GAZEBO_MINOR_VERSION << std::endl;
@@ -45,11 +51,10 @@ int main(int argc, char** argv)
     gazebo::transport::NodePtr gazeboNodePtr(new gazebo::transport::Node());
     gazeboNodePtr->Init();
 
-    
     gazebo::transport::SubscriberPtr sub_pose1 = generateCbLocalPose.subscribeGazeboNode(gazeboNodePtr);
 
     while (true)
-        gazebo::common::Time::MSleep(10);
+        gazebo::common::Time::MSleep(1000);
 
     // Make sure to shut everything down.
     gazebo::client::shutdown();
