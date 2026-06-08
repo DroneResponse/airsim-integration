@@ -74,21 +74,21 @@ std::string GenerateCbLocalPose::getCurrentTimeInFormat()
 
 void GenerateCbLocalPose::resetPoseToDefault(uint16_t key)
 {
-    this->drone_pose_map[key].x = -1;
-    this->drone_pose_map[key].y = -1;
-    this->drone_pose_map[key].z = -1;
-    this->drone_pose_map[key].w = -1;
-    this->drone_pose_map[key].xi = -1;
-    this->drone_pose_map[key].yj = -1;
-    this->drone_pose_map[key].zk = -1;
+    this->drone_pose_map[key].x = 0;
+    this->drone_pose_map[key].y = 0;
+    this->drone_pose_map[key].z = 0;
+    this->drone_pose_map[key].w = 0;
+    this->drone_pose_map[key].xi = 0;
+    this->drone_pose_map[key].yj = 0;
+    this->drone_pose_map[key].zk = 0;
 
-    this->camera_pose_map[key].x = -1;
-    this->camera_pose_map[key].y = -1;
-    this->camera_pose_map[key].z = -1;
-    this->camera_pose_map[key].w = -1;
-    this->camera_pose_map[key].xi = -1;
-    this->camera_pose_map[key].yj = -1;
-    this->camera_pose_map[key].zk = -1;
+    this->camera_pose_map[key].x = 0;
+    this->camera_pose_map[key].y = 0;
+    this->camera_pose_map[key].z = 0;
+    this->camera_pose_map[key].w = 0;
+    this->camera_pose_map[key].xi = 0;
+    this->camera_pose_map[key].yj = 0;
+    this->camera_pose_map[key].zk = 0;
 }
 
 void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
@@ -111,10 +111,10 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
         {
             // track the drone id
             this->trackDroneIds(current_drone_name);
-            // check if the droneID is already part of cd lthe hashmap
+            // check if the droneID is already part of the hashmap
             if(!this->drone_pose_map.contains(this->droneIds[current_drone_name])){
                 // add the empty pose here
-                PoseTransfer::Pose drone_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+                PoseTransfer::Pose drone_pose = {0, 0, 0, 0, 0, 0, 0};
                 this->drone_pose_map[this->droneIds[current_drone_name]] = drone_pose;
             }
 
@@ -133,7 +133,7 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
             std::string drone_name = current_drone_name.substr(0, delimiter_pos);
             if(!this->camera_pose_map.contains(this->droneIds[drone_name])){
                 // add the empty pose here
-                PoseTransfer::Pose camera_pose = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+                PoseTransfer::Pose camera_pose = {0, 0, 0, 0, 0, 0, 0};
                 this->camera_pose_map[this->droneIds[drone_name]] = camera_pose;
             }
 
@@ -160,8 +160,9 @@ void GenerateCbLocalPose::cbLocalPose(ConstPosesStampedPtr &msg)
         this->poseSender->send_pose_message(pose_message);
         if (count % MESSAGE_THROTTLE == 0) {
             std::cout << "Packet Number: " << count << ", Drone Id: "
-                    << std::to_string(pair.second) << ", Timestamp: "
-                    << this->getCurrentTimeInFormat() << " , Drone Position: "
+                    << std::to_string(pair.second)
+                    // << ", Timestamp: " << this->getCurrentTimeInFormat()
+                    << ", Drone Position: "
                     << std::to_string(this->drone_pose_map[pair.second].x) << ", "
                     << std::to_string(this->drone_pose_map[pair.second].y) << ", "
                     << std::to_string(this->drone_pose_map[pair.second].z) << ", Drone Orientation: "
@@ -183,7 +184,7 @@ gazebo::transport::SubscriberPtr GenerateCbLocalPose::subscribeGazeboNode(
     // Listen to Gazebo topics
     // update freq ~250 hz
     return gazeboNodePtr->Subscribe(
-        "~/pose/local/info",
+        "~/pose/local/sade_info",
         &GenerateCbLocalPose::cbLocalPose,
         this);
 }
